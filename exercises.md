@@ -1,9 +1,9 @@
 ## stratascratch.com (PostgreSQL)
 <details>
-<summary>Упражнение "Share of Active Users"</summary>
+<summary>Упражнение "Share of Active Users": расчет доли с дополнительным условием</summary>
 ID 2005<br>
 <p>Output share of US users that are active. Active users are the ones with an "open" status in the table.</p>
-
+<p>Выведите долю активных пользователей в США. Активные пользователи - это те, у кого в таблице статус "open".</p>
 Table: fb_active_users<br>
 user_id: int<br>
 name: varchar<br>
@@ -12,6 +12,7 @@ country: varchar
 
  **Solution**
 ```sql
+-- Чтобы формула "заработала" нужно поривести одно из значений к numeric.
 -- Вариант 1.
 
 -- Использование условного выражения
@@ -38,11 +39,10 @@ FROM fb_active_users;
 
 </details>
 <details>
-<summary>Упражнение "New Products"</summary>
+<summary>Упражнение "New Products": сравнение периодов, выделенных из одной колонки таблицы</summary>
 ID 10318<br>
-<p>You are given a table of product launches by company by year. 
-Write a query to count the net difference between the number of products companies launched in 2020 with the number of products companies launched in the previous year. 
-Output the name of the companies and a net difference of net products released for 2020 compared to the previous year.</p>
+<p>You are given a table of product launches by company by year. Write a query to count the net difference between the number of products companies launched in 2020 with the number of products companies launched in the previous year. Output the name of the companies and a net difference of net products released for 2020 compared to the previous year.</p>
+<p>Вам предоставляется таблица запусков продуктов компаниями по годам. Напишите запрос, чтобы подсчитать чистую разницу между количеством продуктов, запущенных компаниями в 2020 году, и количеством продуктов, запущенных компаниями в предыдущем году. Выведите названия компаний и разницу в количестве продуктов, выпущенных за 2020 год, по сравнению с предыдущим годом.</p>
 
 Table: car_launches</br>
 year: int</br>
@@ -103,7 +103,7 @@ Honda|-3|
 
 </details>
 <details>
-<summary>Упражнение "Premium Acounts"</summary>
+<summary>Упражнение "Premium Acounts": добавление к таблице колонок на основе данных этой же таблицы</summary>
 ID 2097<br>
 <p>You are given a dataset that provides the number of active users per day per premium account. 
 A premium account will have an entry for every day that it’s premium. However, a premium account may be temporarily discounted and considered not paid, this is indicated by a value of 0 in the final_price column for a certain day. 
@@ -121,7 +121,7 @@ plan_size: int
 
  **Solution**
 ```sql
--- Чтобы получить для решени ядве колонки, таблица объединяется сама с собой.
+-- Чтобы получить для решения две колонки, таблица объединяется сама с собой.
 -- Далее отбираются нужные строки, которые агрегируются по дате.
 
 SELECT 
@@ -149,5 +149,42 @@ entry_date|premium_paid_accounts|premium_paid_accounts_after_7d|
 2022-02-11|4|1|
 2022-02-12|3|2|
 2022-02-13|3|1|
+
+</details>
+<details>
+<summary>Упражнение "Flags per Video": преобразование строковых данных с условным выражением и очисткой от возможных пробелов"</summary>
+ID 2102<br>
+<p>For each video, find how many unique users flagged it. A unique user can be identified using the combination of their first name and last name. Do not consider rows in which there is no flag ID.</p>
+<p>Для каждого видео найдите, сколько уникальных пользователей отметили его. Уникального пользователя можно идентифицировать, используя комбинацию его имени и фамилии. Не рассматривайте строки, в которых нет идентификатора флага.</p>
+
+Table: user_flags<br>
+user_firstname: varchar<br>
+user_lastname: varchar<br>
+video_id: varchar<br>
+flag_id: varchar
+
+ **Solution**
+```sql
+-- Функция concat объединяет строки для формирования id. 
+-- Условное выцражение COALESCE возвращает пустую строку, если нет имени или фамилии.
+-- Функция trim удаляет пробелы слева и справа.
+
+SELECT 
+	video_id,
+	count(DISTINCT concat(COALESCE(trim(FROM user_firstname), ''), COALESCE(trim(FROM user_lastname), ''))) num_unique_users
+FROM user_flags
+WHERE flag_id IS NOT NULL -- Отфильтровываем пользователей без флага
+GROUP BY video_id;
+```
+
+ **Output**
+ 
+|video_id|num_unique_users|
+|:---|---:|
+|5qap5aO4i9A|2|
+|Ct6BUPvE2sM|2|
+|dQw4w9WgXcQ|5|
+|jNQXAC9IVRw|3|
+|y6120QOlsfU|5|
 
 </details>
