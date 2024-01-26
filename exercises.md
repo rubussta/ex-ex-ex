@@ -188,3 +188,88 @@ GROUP BY video_id;
 |y6120QOlsfU|5|
 
 </details>
+<details>
+<summary>Упражнение "User with Most Approved Flags": оконная функция dense_rank без PARTITION BY</summary>
+ID 2104<br>
+<p>Which user flagged the most distinct videos that ended up approved by YouTube? Output, in one column, their full name or names in case of a tie. In the user's full name, include a space between the first and the last name.</p>
+<p>Какой пользователь отметил наиболее отличающиеся друг от друга видеоролики, которые в итоге были одобрены YouTube? Выведите в одном столбце их полное имя или фамилии в случае совпадения. В полном имени пользователя укажите пробел между именем и фамилией.</p>
+<p>Table: user_flags
+user_firstname: varchar<br>
+user_lastname: varchar<br>
+video_id: varchar<br>
+flag_id: varchar</p>
+<p>Table: flag_review<br>
+flag_id: varchar<br>
+reviewed_by_yt: bool<br>
+reviewed_date: datetime<br>
+reviewed_outcome: varchar</p>
+
+ **Solution**
+```sql
+/*
+По условию задания фактически нужно получить пользователя (или пользователей), у которого было больше всех уникальных видео, 
+которые были одобрены к публикации. Таблица flag_review отражает результат одоброения.
+Очевидно, что будет неизвестное кол-во пользователей с одинаковым числом роликов и нам неизвестен аргумент для LIMIT в связке с ORDER BY.
+Поэтому, пользователей нужно проранжировать и получить список тех, у кого наивысший ранг.
+Также вызывает вопрос идентификация пользователей по имени и фамилии по условию задачи. Но ID пользователя нет и используем, что есть. 
+
+Объединяем таблицы и отфильтровыввем строки с пользователями, у которых видео одобрены.
+Для ранжирования пользоватей используем оконную функцию dense_rank без PARTITION BY.
+Без PARTITION BY строки раздела состоят из всех строк таблицы, которые группируются с помощью GROUP BY по имени пользователя.
+Заворачиваем оконную функцию в подзапрос, чтобы отобрать пользователей с максимальным рангом.
+*/
+SELECT 
+    username
+FROM 
+    (SELECT concat(uf.user_firstname, ' ', uf.user_lastname) AS username, -- Объединяем имя и фамилию через пробел
+    dense_rank () OVER (ORDER BY count(DISTINCT video_id) DESC) AS dr -- Вычисляем ранг пользователя без пропусков по кол-ву видео 
+    FROM user_flags AS uf
+    JOIN flag_review AS fr ON uf.flag_id = fr.flag_id
+    WHERE lower(fr.reviewed_outcome) = 'approved' -- проиводим к нижнему регистру на случай разнобоя в данных по регистру
+    GROUP BY username) AS user_rank
+WHERE dr = 1;
+```
+ **Output**
+|username|dr|
+|:---|---:|
+|Mark May|1|
+|Richard Hasson|1|
+
+```sql
+/*
+В нашей оконной функции рамка окна состоит из одной строки в виде агрегата количества уникальных роликов count(DISTINCT video_id).
+Если организовать разделы с помощью PARTITION BY username, то в каждом разделе (для каждого польтзователя) ранг будет равен '1'.
+Чтобы получить ранжированный список, расширяем раздел окна до всей таблицы, опуская в оконной функции PARTITION BY.
+Для наглядности выведем результаты только оконной функции без джойнов и фильтров.
+Этот запрос сначала формирует виртуальную таблицу из пользователей и количества их роликов.
+Затем по ней в виде одного раздела вычисляется функция рамки окна dense_rank.
+
+В этих результатах больше всего роликов у Марка, но в финальном запросе после наложения фильтртов по условиям задачи
+появляется еще и Ричард, т.е. в датасете присутствует 2 человека с одинаковым максимальным количеством одобренных роликов.
+*/
+SELECT 
+user_firstname,
+count(video_id),
+dense_rank () OVER (
+	ORDER BY count(video_id) DESC
+	)
+FROM user_flags
+GROUP BY user_firstname;
+
+user_firstname|count |dense_rank|
+--------------+------+----------+
+Mark          |     6|         1|
+Richard       |     5|         2|
+Pauline       |     3|         3|
+Gina          |     3|         3|
+              |     3|         3|
+Daniel        |     2|         4|
+Greg          |     1|         5|
+Evelyn        |     1|         5|
+William       |     1|         5|
+Loretta       |     1|         5|
+Helen         |     1|         5|
+Courtney      |     1|         5|
+Mary          |     1|         5|
+```
+</details>
