@@ -221,7 +221,7 @@ reviewed_outcome: varchar</p>
 SELECT 
     username
 FROM 
-    (SELECT concat(uf.user_firstname, ' ', uf.user_lastname) AS username, -- Объединяем имя и фамилию через пробел
+    (SELECT concat(trim(FROM uf.user_firstname), ' ', trim(FROM uf.user_lastname)) AS username, -- Очищаем от  возможных пробелов и объединяем имя и фамилию через пробел
     dense_rank () OVER (ORDER BY count(DISTINCT video_id) DESC) AS dr -- Вычисляем ранг пользователя без пропусков по кол-ву видео 
     FROM user_flags AS uf
     JOIN flag_review AS fr ON uf.flag_id = fr.flag_id
