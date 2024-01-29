@@ -294,7 +294,7 @@ Table: sat_scores
 ```sql
 /*
 Для вычисления медианы в PostgreSQL используются сортирующие агрегатные функции 
-percentile_disc и percentile_cont, возвращающие дискретный или непрерывный процентиль.
+percentile_disc или percentile_cont, возвращающие дискретный или непрерывный процентиль.
 */
 SELECT student_id, sat_writing
 FROM sat_scores
