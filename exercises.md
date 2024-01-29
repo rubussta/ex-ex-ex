@@ -273,3 +273,47 @@ Courtney      |     1|         5|
 Mary          |     1|         5|
 ```
 </details>
+<details>
+<summary>Упражнение "Find students with a median writing score": использование агрегатного выражения с медианой в WHERE</summary>
+<br><p>ID 9610</p>
+<p>Output ids of students with a median score from the writing SAT.</p>
+<p>Выведите идентификаторы учащихся со средним баллом по результатам письменного экзамена SAT.</p>
+Table: sat_scores
+	
+(school varchar),  
+(teacher varchar),  
+(student_id float),  
+(sat_writing float),    
+(sat_verbal float),  
+(sat_math float),  
+(hrs_studied float),  
+(id int),  
+(average_sat float)
+
+**Solution**
+```sql
+/*
+Для вычисления медианы в PostgreSQL используются сортирующие агрегатные функции 
+percentile_disc и percentile_cont, возвращающие дискретный или непрерывный процентиль.
+*/
+SELECT student_id, sat_writing
+FROM sat_scores
+WHERE sat_writing = (
+    SELECT percentile_disc(0.5) WITHIN GROUP (ORDER BY sat_writing)
+    FROM sat_scores);
+/*
+Почему агрегатная функция выведена в подзапрос?
+Потому что в условии фильтрации она становится агрегатным выражением и согласно документации:
+"Агрегатное выражение может фигурировать только в списке результатов или в предложении HAVING команды SELECT. 
+Во всех остальных предложениях, например WHERE, они запрещены, так как эти предложения логически вычисляются до того, 
+как формируются результаты агрегатных функций."
+*/
+```
+ **Output**
+ 
+|student_id|sat_writing|
+|---:|---:|
+|100|512|
+|109|512|
+|113|512|
+</details>
