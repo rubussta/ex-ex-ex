@@ -317,3 +317,123 @@ WHERE sat_writing = (
 |109|512|
 |113|512|
 </details>
+<details>
+<summary>Упражнение "Classify Business Type": поиск слова в строке</summary>  
+<br><p>ID 9726</p>  
+
+Classify each business as either a restaurant, cafe, school, or other.  
+- A restaurant should have the word 'restaurant' in the business name.  
+- A cafe should have either 'cafe', 'café', or 'coffee' in the business name.  
+- A school should have the word 'school' in the business name.  
+- All other businesses should be classified as 'other'.
+Output the business name and their classification.
+
+Table: sf_restaurant_health_violations  
+
+(business_id int),  
+(business_name varchar),  
+(business_address varchar),  
+(business_city varchar),  
+(business_state varchar),  
+(business_postal_code float),  
+(business_latitude float),  
+(business_longitude float),  
+(business_location varchar),  
+(business_phone_number float),  
+(inspection_id varchar),  
+(inspection_date datetime),  
+(inspection_score float),  
+(inspection_type varchar),  
+(violation_id varchar),  
+(violation_description varchar),  
+(risk_category varchar)  
+
+ **Solution**
+ 
+По условию задачи имеем строку из нескольких слов, в которой нам нужно найти определенное слово и результатом этого поиска должно быть логическое значение, которое потом бужети участвовать в условном операторе CASE для формирования новой классификации строк.  
+
+Особенность заключается в том, что в задании явно указано, что нужно найте не строку, а слово, которое может быть в начеле строки, в середине либо в конце, т.е нужно составить такой шаблон, который будет учитывать расположение пробелов.  
+
+Начнем с варианта поиска в строке по шаблону. Шаблон будем составлять из регулярных выражений POSIX со спецсимволами и спецкодами регистра символов и начала/конца слова. Для краткости возьмем из задания только слово 'cafe' и смоделируем варианты его нахождения в строке.  
+ 
+```sql
+SELECT 
+'1. Allstars Cafe Inc' ~* '(\mcafe\M)',
+'2. Cafe Online' ~* '(\mcafe\M)',
+'3. Luna Cafe' ~* '(\mcafe\M)',
+'4. Cafemania Shope' ~* '(\mcafe\M)',
+'5. InCafe' ~* '(\mcafe\M)';
+
+?column?|?column?|?column?|?column?|?column?|
+--------+--------+--------+--------+--------+
+true    |true    |true    |false   |false   |
+```
+
+Шаблон можно подкорректировать с учетом формы слов. Этого нет в задании, но в датасете есть такие наименования организаций, для которых это имеет смысл.  
+
+```sql
+SELECT 
+'6. Gateway High/Kip Schools' ~* '\mschool.\M',
+'7. Restaurante Montecristo' ~* '\mrestaurant.\M';
+
+?column?|?column?|
+--------+--------+
+true    |true    |
+```
+
+Почему здесь выбран шаблон '\mschool.\M' для слова, а не '.*school.*'для строки? Во-первых, в задании сказано, что бизнесы должны классифицироваться словом и указано его точное совпадение. Но эти условия  несколько противоречат цели задания - классифицировать бизнесы. Если в названии организации присутствует строка 'cafe', то, скорее всего, по бизнесу это кафе и есть. Но для принятия решения "слово или строка" нужно знать контекст. Cafeteria - это бизнес типа кафе или нет? В продовольственном магазине стоит кофейный автомат самообслуживания без столиков. Это подходит под определение Cafeteria, а под категорию Cafe? Поэтому шаблон для поиска в виде слова выбран чисто по формальным критериям, указывающим, что нужно искать слово в его конкретной форме: "...should have the word 'restaurant'..."  
+
+**1 Вариант решения**
+
+```sql
+SELECT 
+     business_name,
+     CASE WHEN business_name ~* '\mrestaurant.\M' THEN 'restaurant'
+       WHEN business_name ~* '(\mcafe\M|\mcafé\M|\mcoffee\M)' THEN 'cafe'
+       WHEN business_name ~* '\mschool.\M' THEN 'school'
+       ELSE 'other'
+       END AS business_type
+FROM sf_restaurant_health_violations
+LIMIT 5;
+```
+
+**Output 1**
+
+|business_name|business_type|
+|---|---|
+|John Chin Elementary School|school|
+|Sutter Pub and Restaurant|restaurant|
+|SRI THAI CUISINE|other|
+|Washington Bakery & Restaurant|restaurant|
+|Brothers Restaurant|restaurant|
+
+Подсчитаем количество категорий в датасете, которые мы сформировали с помощью условного оператора.
+
+```sql
+WITH bt AS (
+    SELECT 
+    business_name,
+    CASE WHEN business_name ~* '\mrestaurant\M' THEN 'restaurant'
+       WHEN business_name ~* '(\mcafe\M|\mcafé\M|\mcoffee\M)' THEN 'cafe'
+       WHEN business_name ~* '\mschool\M' THEN 'school'
+       ELSE 'other'
+    END AS business_type
+    FROM sf_restaurant_health_violations) 
+SELECT  business_type, count(business_type)
+FROM bt
+GROUP BY business_type;
+```
+
+|business_type|count|
+|:---|---:|
+|school|6|
+|restaurant|37|
+|cafe|50|
+|other|204|
+
+**2 Вариант решения**
+ 
+ **Output 2**
+ 
+
+</details>
