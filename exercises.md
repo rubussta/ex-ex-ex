@@ -350,7 +350,7 @@ Table: sf_restaurant_health_violations
 
  **Solution**
  
-По условию задачи имеем строку из нескольких слов, в которой нам нужно найти определенное слово и результатом этого поиска должно быть логическое значение, которое потом бужети участвовать в условном операторе CASE для формирования новой классификации строк.  
+По условию задачи имеем строку из нескольких слов, в которой нам нужно найти определенное слово в его конкретной форме: "...should have the word 'restaurant'..."  и результатом этого поиска должно быть логическое значение, которое потом бужети участвовать в условном операторе CASE для формирования новой классификации строк.  
 
 Особенность заключается в том, что в задании явно указано, что нужно найте не строку, а слово, которое может быть в начеле строки, в середине либо в конце, т.е нужно составить такой шаблон, который будет учитывать расположение пробелов.  
 
@@ -373,26 +373,24 @@ true    |true    |true    |false   |false   |
 
 ```sql
 SELECT 
-'6. Gateway High/Kip Schools' ~* '\mschool.\M',
-'7. Restaurante Montecristo' ~* '\mrestaurant.\M';
+'6. Gateway High/Kip Schools' ~* '\mschool.*',
+'7. Restaurante Montecristo' ~* '\mrestaurant.*';
 
 ?column?|?column?|
 --------+--------+
 true    |true    |
 ```
 
-Почему здесь выбран шаблон '\mschool.\M' для слова, а не '.*school.*'для строки? Во-первых, в задании сказано, что бизнесы должны классифицироваться словом и указано его точное совпадение. Но эти условия  несколько противоречат цели задания - классифицировать бизнесы. Если в названии организации присутствует строка 'cafe', то, скорее всего, по бизнесу это кафе и есть. Но для принятия решения "слово или строка" нужно знать контекст. Cafeteria - это бизнес типа кафе или нет? В продовольственном магазине стоит кофейный автомат самообслуживания без столиков. Это подходит под определение Cafeteria, а под категорию Cafe? Поэтому шаблон для поиска в виде слова выбран чисто по формальным критериям, указывающим, что нужно искать слово в его конкретной форме: "...should have the word 'restaurant'..."  
-
 **1 Вариант решения**
 
 ```sql
 SELECT 
-     business_name,
-     CASE WHEN business_name ~* '\mrestaurant.\M' THEN 'restaurant'
-       WHEN business_name ~* '(\mcafe\M|\mcafé\M|\mcoffee\M)' THEN 'cafe'
-       WHEN business_name ~* '\mschool.\M' THEN 'school'
-       ELSE 'other'
-       END AS business_type
+    business_name,
+    CASE WHEN business_name ~* '\mrestaurant.*' THEN 'restaurant'
+        WHEN business_name ~* '(\mcafe\M|\mcafé\M|\mcoffee\M)' THEN 'cafe'
+        WHEN business_name ~* '\mschool.*' THEN 'school'
+        ELSE 'other'
+        END AS business_type
 FROM sf_restaurant_health_violations
 LIMIT 5;
 ```
@@ -413,11 +411,11 @@ LIMIT 5;
 WITH bt AS (
     SELECT 
     business_name,
-    CASE WHEN business_name ~* '\mrestaurant\M' THEN 'restaurant'
-       WHEN business_name ~* '(\mcafe\M|\mcafé\M|\mcoffee\M)' THEN 'cafe'
-       WHEN business_name ~* '\mschool\M' THEN 'school'
-       ELSE 'other'
-    END AS business_type
+    CASE WHEN business_name ~* '\mrestaurant.*' THEN 'restaurant'
+        WHEN business_name ~* '(\mcafe\M|\mcafé\M|\mcoffee\M)' THEN 'cafe'
+        WHEN business_name ~* '\mschool.*' THEN 'school'
+        ELSE 'other'
+        END AS business_type
     FROM sf_restaurant_health_violations) 
 SELECT  business_type, count(business_type)
 FROM bt
@@ -426,10 +424,10 @@ GROUP BY business_type;
 
 |business_type|count|
 |:---|---:|
-|school|6|
-|restaurant|37|
+|school|7|
+|restaurant|38|
 |cafe|50|
-|other|204|
+|other|202|
 
 **2 Вариант решения**   
 
@@ -457,4 +455,43 @@ LIMIT 5;
 |A La Turca|other|
 |Allstars Cafe Inc|cafe|
 
+Посмотрим на результат классификации:
+```sql
+WITH bt AS (
+    SELECT  business_name,
+    CASE 
+        WHEN to_tsvector('english', business_name) @@ to_tsquery('english', 'school') THEN 'school' 
+        WHEN to_tsvector('english',  business_name) @@ to_tsquery('english', 'restaurant:*') THEN 'restaurant' 
+        WHEN to_tsvector('english',  business_name) @@ to_tsquery('english', 'cafe | café | coffee') THEN 'cafe' 
+        ELSE 'other' 
+        END AS business_type 
+    FROM sf_restaurant_health_violations) 
+SELECT  business_type, count(business_type)
+FROM bt
+GROUP BY business_type;
+```
+
+|business_type|count|
+|:---|---:|
+|school|7|
+|restaurant|38|
+|cafe|50|
+|other|202|  
+
+**3 Вариант решения**   
+
+Сравнение табличных строк и массивов.
+
+```sql
+SELECT 
+     business_name,
+    CASE WHEN business_name ~* ANY (ARRAY['\mrestaurant.*']) THEN 'restaurant'
+        WHEN business_name ~* ANY (ARRAY['\mcafe\M', '\mcafé\M', '\mcoffee\M']) THEN 'cafe'
+        WHEN business_name ~* ANY (ARRAY['\mschool.*']) THEN 'school'
+        ELSE 'other'
+        END AS business_type
+FROM sf_restaurant_health_violations;
+```
+
+Output аналогичен предыдущим.
 </details>
