@@ -318,7 +318,7 @@ WHERE sat_writing = (
 |113|512|
 </details>
 <details>
-<summary>Упражнение "Classify Business Type": поиск слова в строке</summary>  
+<summary>Упражнение "Classify Business Type": поиск слова в тексте</summary>  
 <br><p>ID 9726</p>  
 
 Classify each business as either a restaurant, cafe, school, or other.  
