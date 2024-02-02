@@ -431,9 +431,30 @@ GROUP BY business_type;
 |cafe|50|
 |other|204|
 
-**2 Вариант решения**
- 
+**2 Вариант решения**   
+
+Применим функции полнотекстового поиска. Слова в тексте будут нормализованы разбором на фрагменты и лексемы. Это позволит в нашем случае сопоставить 'schools' и 'school'. Укажем конфигурацию 'english' текстового поиска явно в функции. Для итальянских названий рестаранов в to_tsquery применим префикс :*
+
+```sql
+SELECT DISTINCT business_name, 
+    CASE 
+        WHEN to_tsvector('english', business_name) @@ to_tsquery('english', 'school') THEN 'school' 
+        WHEN to_tsvector('english',  business_name) @@ to_tsquery('english', 'restaurant:*') THEN 'restaurant' 
+        WHEN to_tsvector('english',  business_name) @@ to_tsquery('english', 'cafe | café | coffee') THEN 'cafe' 
+        ELSE 'other' 
+        END AS business_type 
+FROM sf_restaurant_health_violations
+LIMIT 5;
+```
+
  **Output 2**
- 
+
+|business_name|business_type|
+|---|---|
+|ABSINTHE PASTRY|other|
+|Akira Japanese Restaurant|restaurant|
+|AK SUBS|other|
+|A La Turca|other|
+|Allstars Cafe Inc|cafe|
 
 </details>
