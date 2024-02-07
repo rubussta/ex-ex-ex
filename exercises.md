@@ -495,3 +495,39 @@ FROM sf_restaurant_health_violations;
 
 Output аналогичен предыдущим.
 </details>
+<details>
+<summary>Упражнение "Highest Salary In Department": оконная функция с фильтрацией по ее результатам</summary>
+<br><p>ID 9897</p>
+<p>Find the employee with the highest salary per department.
+Output the department name, employee's first name along with the corresponding salary.</p>
+Table:  employee<br>
+(id int),
+(first_name varchar),
+(last_name varchar),
+(age int),
+(sex varchar),
+(employee_title varchar),
+(department varchar),
+(salary int)<br>
+
+ **Solution**
+Для определения максимальной зарплаты используем оконную функцию rank() и заворачиваем ее в подзапрос, чтобы использовать с фильтрации в основном запросе.
+ 
+```sql
+SELECT department, first_name, salary
+FROM -- Подзапрос для фильтрации по значению rank 
+    (SELECT department, first_name, salary, 
+    rank() OVER (PARTITION BY department ORDER BY salary DESC) AS r
+    FROM employee) AS rr
+WHERE r = 1
+ORDER BY salary DESC;
+```
+
+ **Output**
+ 
+|department|first_name|salary|
+|---|---|---:|
+|Management|Richerd|250000|
+|Sales|Mick|2200|
+|Audit|Shandler|1100|
+</details>
