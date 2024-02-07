@@ -501,16 +501,17 @@ Output аналогичен предыдущим.
 <p>Find the employee with the highest salary per department.
 Output the department name, employee's first name along with the corresponding salary.</p>
 Table:  employee<br>
-(id int),
-(first_name varchar),
-(last_name varchar),
-(age int),
-(sex varchar),
-(employee_title varchar),
-(department varchar),
-(salary int)<br>
+(id int),<br>
+(first_name varchar),<br>
+(last_name varchar),<br>
+(age int),<br>
+(sex varchar),<br>
+(employee_title varchar),<br>
+(department varchar),<br>
+(salary int)<br><br>
 
- **Solution**
+**Solution**
+ 
 Для определения максимальной зарплаты используем оконную функцию rank() и заворачиваем ее в подзапрос, чтобы использовать с фильтрации в основном запросе.
  
 ```sql
