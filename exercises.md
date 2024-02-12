@@ -512,7 +512,7 @@ Table:  employee<br>
 
 **Solution**
  
-Для определения максимальной зарплаты используем оконную функцию rank() и заворачиваем ее в подзапрос, чтобы использовать с фильтрации в основном запросе.
+Для определения максимальной зарплаты используем оконную функцию rank() и заворачиваем ее в подзапрос, чтобы использовать для фильтрации в основном запросе. В данном случае агрегатные функции min()/max() не подходят, поскольку они возвращают единственное значение, но у нескольких человек могут быть одинаковые зарплаты.
  
 ```sql
 SELECT department, first_name, salary
@@ -531,4 +531,43 @@ ORDER BY salary DESC;
 |Management|Richerd|250000|
 |Sales|Mick|2200|
 |Audit|Shandler|1100|
+</details>
+<details>
+<summary>Упражнение "Highest Target Under Manager": оконная функция без PARTITION BY с форматированием строк</summary>
+<br><p>ID 9905</p>
+<p>Find the highest target achieved by the employee or employees who works under the manager id 13. Output the first name of the employee and target achieved. The solution should show the highest target achieved under manager_id=13 and which employee(s) achieved it.</p>
+Table: salesforce_employees<br>
+(id int),<br>
+(first_name varchar),<br>
+(last_name varchar),<br>
+(age int),<br>
+(sex varchar),<br>
+(salary int),<br>
+(target int),<br>
+(manager_id int)<br>
+
+**Solution**
+ 
+Чтобы найти максимальное целевое значение используем оконную функцию rank() в подзапросе. Поскольку нужны подчиненные только одного менеджера с ID=13, то здесь же оставляем только его. В этом случае нет необходимости выделять рамки окна среди менеджеров, он все равно один, и мы опускаем в синтаксисе оконной функции PARTITION BY, расширяя рамку окна до всего раздела, который состояит у нас из работников одного менеджера. Результат возвращаем с форматированием строк. Имя и фамилию объединяем через пробел с помощью строковой функции concat(), предварительно приведя их к нижнему регистру с заглавной буквы в начале слова с помощью initcap(). До этого в исходных строках функцией trim() образаем пробелы, если они там были.
+ 
+```sql
+SELECT 
+concat(initcap (trim(first_name)), ' ', initcap (trim(last_name))) AS employee,
+target
+FROM
+    (SELECT first_name, last_name, target, manager_id,
+    rank() OVER (ORDER BY target DESC) AS r
+    FROM salesforce_employees
+    WHERE manager_id = 13
+    ) AS ranked_target
+WHERE r = 1;
+```
+
+ **Output**
+ 
+|employee|target|
+|---|---:|
+|Nicky Bat|400|
+|Steve Smith|400|
+|David Warner|400|
 </details>
