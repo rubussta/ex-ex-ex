@@ -534,21 +534,26 @@ ORDER BY salary DESC;
 </details>
 <details>
 <summary>Упражнение "Highest Target Under Manager": оконная функция без PARTITION BY с форматированием строк</summary>
-<br><p>ID 9905</p>
-<p>Find the highest target achieved by the employee or employees who works under the manager id 13. Output the first name of the employee and target achieved. The solution should show the highest target achieved under manager_id=13 and which employee(s) achieved it.</p>
-Table: salesforce_employees<br>
-(id int),<br>
-(first_name varchar),<br>
-(last_name varchar),<br>
-(age int),<br>
-(sex varchar),<br>
-(salary int),<br>
-(target int),<br>
-(manager_id int)<br>
+<br><p>ID 9905</p>  
+	
+Find the highest target achieved by the employee or employees who works under the manager id 13. Output the first name of the employee and target achieved. The solution should show the highest target achieved under manager_id=13 and which employee(s) achieved it.  
+	
+Table: salesforce_employees  
+
+(id int),  
+(first_name varchar),  
+(last_name varchar),  
+(age int),  
+(sex varchar),  
+(salary int),  
+(target int),  
+(manager_id int)  
 
 **Solution**
  
-Чтобы найти максимальное целевое значение используем оконную функцию rank() в подзапросе. Поскольку нужны подчиненные только одного менеджера с ID=13, то здесь же оставляем только его. В этом случае нет необходимости выделять рамки окна среди менеджеров, он все равно один, и мы опускаем в синтаксисе оконной функции PARTITION BY, расширяя рамку окна до всего раздела, который состояит у нас из работников одного менеджера. Результат возвращаем с форматированием строк. Имя и фамилию объединяем через пробел с помощью строковой функции concat(), предварительно приведя их к нижнему регистру с заглавной буквы в начале слова с помощью initcap(). До этого в исходных строках функцией trim() образаем пробелы, если они там были.
+Чтобы найти максимальное целевое значение используем оконную функцию rank() в подзапросе. Поскольку нужны подчиненные только одного менеджера с ID=13, то здесь же оставляем только его. В этом случае нет необходимости выделять рамки окна среди менеджеров, он все равно один, и мы опускаем в синтаксисе оконной функции PARTITION BY, расширяя рамку окна до всего раздела, который состояит у нас из работников одного менеджера.  
+
+Результат возвращаем с форматированием строк. В исходных строках функцией trim() образаем пробелы, если они там были. Имя и фамилию объединяем через пробел с помощью строковой функции concat(), предварительно приведя их к нижнему регистру с заглавной буквы в начале слова с помощью initcap().
  
 ```sql
 SELECT 
@@ -570,4 +575,44 @@ WHERE r = 1;
 |Nicky Bat|400|
 |Steve Smith|400|
 |David Warner|400|
+</details>
+<details>
+<summary>Упражнение "Find the top 10 ranked songs in 2010": исключаем повторы с помощью GROUP BY</summary>
+<br><p>ID 9650</p>  
+	
+What were the top 10 ranked songs in 2010? Output the rank, group name, and song name but do not show the same song twice. Sort the result based on the year_rank in ascending order.   
+
+Table: llboard_top_100_year_end    
+
+(year int),  
+(year_rank int),  
+(group_name varchar),   
+(artist varchar),  
+(song_namey varchar),  
+(id int)  
+
+**Solution**
+ 
+```sql
+SELECT year_rank, group_name, song_name
+FROM billboard_top_100_year_end
+WHERE year = 2010 AND (year_rank >0 AND year_rank <11)
+GROUP BY  1, 2, 3
+ORDER BY year_rank ASC;
+```
+
+ **Output**
+ 
+|year_rank|group_name|song_name|
+|---:|---|---|
+|1|Ke$ha|TiK ToK|
+|2|Lady Antebellum|Need You Now|
+|3|Train|Hey, Soul Sister|
+|4|Katy Perry feat. Snoop Dogg|California Gurls|
+|5|Usher feat. will.i.am|OMG|
+|6|B.o.B feat. Hayley Williams|Airplanes|
+|7|Eminem feat. Rihanna|Love The Way You Lie|
+|8|Lady Gaga|Bad Romance|
+|9|Taio Cruz|Dynamite|
+|10|Taio Cruz feat. Ludacris|Break Your Heart|
 </details>
