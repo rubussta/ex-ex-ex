@@ -616,3 +616,37 @@ ORDER BY year_rank ASC;
 |9|Taio Cruz|Dynamite|
 |10|Taio Cruz feat. Ludacris|Break Your Heart|
 </details>
+<details>
+<summary>Упражнение "Number of violations": группировка по году в дате и расчет агрегата</summary>
+<br><p>ID 9728</p>  
+	
+You're given a dataset of health inspections. Count the number of violation in an inspection in 'Roxanne Cafe' for each year. If an inspection resulted in a violation, there will be a value in the 'violation_id' column. Output the number of violations by year in ascending order.   
+
+Table: sf_restaurant_health_violations    
+
+(business_id int),  
+(business_name varchar),   
+(artist varchar),  
+(violation_id varchar),  
+(inspection_date datetime)  
+
+**Solution**
+ 
+```sql
+SELECT 
+date_part ( 'year', inspection_date ) AS year,
+count(violation_id) AS n_inspections
+FROM sf_restaurant_health_violations
+WHERE business_name = 'Roxanne Cafe'
+GROUP BY year
+ORDER BY year ASC;
+```
+
+ **Output**
+ 
+|year|n_inspections|
+|---|---:|
+|2015|5|
+|2016|2|
+|2018|3|
+</details>
