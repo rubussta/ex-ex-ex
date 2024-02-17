@@ -626,7 +626,6 @@ Table: sf_restaurant_health_violations
 
 (business_id int),  
 (business_name varchar),   
-(artist varchar),  
 (violation_id varchar),  
 (inspection_date datetime)  
 
