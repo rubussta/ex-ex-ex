@@ -649,3 +649,34 @@ ORDER BY year ASC;
 |2016|2|
 |2018|3|
 </details>
+<details>
+<summary>Упражнение "Find the rate of processed tickets for each type": подсчет доли по колонке</summary>
+<br><p>ID 9781</p>  
+	
+Find the rate of processed tickets for each type.   
+
+Table: facebook_complaints    
+
+(complaint_id int),  
+(type int),   
+(processed bool)  
+
+**Solution**
+
+Преобразуем булевы значения с помощью условного выражения CASE в упроженной форме синтаксиса и применяем к ним агроегатную функцию. В конструкции CASE опущен ELSE. В нашем случае все, кроме TRUE принимает значание NULL. В знаменателе формулы подсчитываем количество непустых значений в processed. Но если нам нужна доля значений с учетом NULL, то можно поделить все на  count(*), т.е. на количество строк в таблице.  
+
+```sql
+SELECT type, 
+sum(CASE processed WHEN TRUE THEN 1 END)::numeric / count(processed) AS processed_rate
+FROM facebook_complaints
+GROUP BY type
+ORDER BY type;
+```
+
+ **Output**
+ 
+|type|processed_rate|
+|---|---:|
+|0|0.667|
+|1|0.667|
+</details>
