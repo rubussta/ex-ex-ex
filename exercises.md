@@ -680,3 +680,38 @@ ORDER BY type;
 |0|0.667|
 |1|0.667|
 </details>
+<details>
+<summary>Упражнение "Customer Revenue In March": подсчет суммы с группировкой и фильтрацией по дате</summary>
+<br><p>ID 9782</p>  
+	
+Calculate the total revenue from each customer in March 2019. Include only customers who were active in March 2019.Output the revenue along with the customer id and sort the results based on the revenue in descending order.   
+
+Table: orders   
+
+(id int),  
+(cust_id int),  
+(order_date datetime),  
+(order_details varchar),  
+(total_order_cost int) 
+
+**Solution**
+
+С помощью функции даты EXTRACT(field FROM source) отфильтровываем клиентов с заказами в марте 2019 года, группируем эти заказы по id клиентов и вычисляем агрегатную функциюю суммирования выручки по каждому id. Полученные суммы упорядочиваем по убыванию. 
+
+```sql
+SELECT cust_id, sum(total_order_cost) AS revenue
+FROM orders
+WHERE EXTRACT(YEAR FROM order_date) = 2019 AND EXTRACT(MONTH FROM order_date) = 3
+GROUP BY cust_id
+ORDER BY revenue DESC;
+```
+
+ **Output**
+ 
+|cust_id|revenue|
+|---|---:|
+|3|210|
+|15|150|
+|7|80|
+|12|20|
+</details>
