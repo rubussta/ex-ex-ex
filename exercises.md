@@ -715,3 +715,97 @@ ORDER BY revenue DESC;
 |7|80|
 |12|20|
 </details>
+<details>
+<summary>Упражнение "Find the number of times each word appears in drafts": cбор статистики по документу</summary>
+<br><p>ID 9817</p>  
+	
+Find the number of times each word appears in drafts. Output the word along with the corresponding number of occurrences.  
+
+Table: google_file_store   
+
+(filename varchar),  
+(contents varchar) 
+
+**Solution**
+
+Для подсчета количестива слов в документах, которые представлены в данном случае в виде двух строк в таблице - названия файла и собственно текста документа, используем функцию сбора статистики по документам ts_stat. Функция принимает текст в фолрмате tsvector в виде одной строки. Исходный текстовой формат преобразуем в tsvector с помощью функции to_tsvector. Возвращаемая статистика будет разной в зависимости от того, как мы определили формат tsvector и от конфигурации текстового поиска сервера. Поскольку нам нужны не все документы, то выбираем по шаблону ILIKE нужные.
+
+**1 Вариант решения**
+
+Преобразуем исходный текст документов в формат tsvector функцией to_tsvector с настройками текстового поиска на сервере по-умолчанию.
+
+```sql
+SELECT word, nentry
+FROM ts_stat('SELECT to_tsvector(contents) FROM google_file_store WHERE filename ILIKE ''draft%''')
+ORDER BY nentry DESC;
+```
+
+ **Output 1**
+ По-умолчанию на данном сервере нормализация текста не предполагает удаление стоп-слов с виде артиклей. Они попадают в статистику как отделоьные лексемы.
+ 
+|word|nentry|
+|---|---:|
+|a|3|
+|market|3|
+|many|2|
+|which|2|
+|the|2|
+|stock|2|
+|predicts|2|
+|of|2|
+|would|2|
+|make|2|
+|investors|2|
+|happy|2|
+|exchange|2|
+|bull|2|
+|bear|1|
+|awaiting|1|
+|are|1|
+|in|1|
+|and|1|
+|too|1|
+|fact|1|
+|that|1|
+|analysts|1|
+|but|1|
+|possibility|1|
+|optimism|1|
+|we|1|
+|much|1|
+|warn|1|
+
+**2 Вариант решения**
+
+В функции to_tsvector явно указываем словарь english.
+
+```sql
+SELECT word, nentry
+FROM ts_stat('SELECT to_tsvector(''english'', contents) FROM google_file_store WHERE filename ILIKE ''draft%''')
+ORDER BY nentry DESC;
+```
+
+ **Output 1**
+ Результат разбора текста другой. Выделены лексемы без окончпний, стоп-слова отброшены, статистика отличная от конфигурации по-умолчанию.
+ 
+|word|nentry|
+|---|---:|
+|market|3|
+|stock|2|
+|predict|2|
+|would|2|
+|mani|2|
+|make|2|
+|investor|2|
+|happi|2|
+|exchang|2|
+|bull|2|
+|analyst|1|
+|bear|1|
+|possibl|1|
+|optim|1|
+|much|1|
+|warn|1|
+|fact|1|
+|await|1|
+</details>
