@@ -809,3 +809,40 @@ ORDER BY nentry DESC;
 |fact|1|
 |await|1|
 </details>
+<details>
+<summary>Упражнение "Make a report showing the number of survivors and non-survivors by passenger class": разбиение одной колонки на несколько</summary>
+<br><p>ID 9881</p>  
+	
+Make a report showing the number of survivors and non-survivors by passenger class. Classes are categorized based on the pclass value as:
+pclass = 1: first_class  
+pclass = 2: second_classs  
+pclass = 3: third_class  
+Output the number of survivors and non-survivors by each class.
+
+Table:  titanic   
+
+(passengerid int),  
+(survived int),   
+(pclass int)  
+
+**Solution**
+
+С помощью условного выражения CASE из одной и той же строки выделяем подвыборки и расчитывам в них агрегат count по каждой группе survived.  
+
+```sql
+SELECT
+survived, 
+count(CASE pclass WHEN  1 THEN 1 ELSE 0 END) AS first_class,
+count(CASE pclass WHEN  2 THEN 2 ELSE 0 END) AS second_classss,
+count(CASE pclass WHEN  3 THEN 3 ELSE 0 END) AS third_class
+FROM titanic
+GROUP BY survived;
+```
+
+ **Output**
+
+|survived|first_class|second_classss|third_class|
+|---|---:|---:|---:|
+|0|11|6|42|
+|1|10|12|19|
+</details>
