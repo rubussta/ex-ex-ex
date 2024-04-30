@@ -846,3 +846,34 @@ GROUP BY survived;
 |0|11|6|42|
 |1|10|12|19|
 </details>
+<details>
+<summary>Упражнение "Second Highest Salary": ранжирование с оконной функцией</summary>
+<br><p>ID 9892</p>  
+	
+Find the second highest salary of employees.
+
+Table:  employee   
+
+(id int),  
+(name int),   
+(salary int)  
+
+**Solution**
+
+Вызываем оконную функция плотного ранга dense_rank () по всему разделу без указания рамки окна, чтобы получить второй по убывания ранг дохода работников. Поскольку у нескольких работников может быть ожинаковый доход, а нам нужно одно значение, то применяем оператор DISTINCT.  
+Также по причине того, что может быть несколько одинаковых значений доходов, запрос получается несколько сложнее, чем просто сортировка ORDER BY salary desc LIMIT 1 OFFSET 1.
+
+```sql
+SELECT DISTINCT salary
+FROM (SELECT salary, 
+        dense_rank() OVER (ORDER BY salary DESC) AS rnk 
+        FROM employee) AS empl_rank
+WHERE rnk = 2;
+```
+
+ **Output**
+
+|salary|
+|---|
+|200000|
+</details>
