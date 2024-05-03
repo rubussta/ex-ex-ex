@@ -855,7 +855,7 @@ Find the second highest salary of employees.
 Table:  employee   
 
 (id int),  
-(name int),   
+(name varchar),   
 (salary int)  
 
 **Solution**
@@ -876,4 +876,54 @@ WHERE rnk = 2;
 |salary|
 |---|
 |200000|
+</details>
+<details>
+<summary>Упражнение "Employee and Manager Salaries": объединение таблицы самой с собой</summary>
+<br><p>ID 9894</p>  
+	
+Find employees who are earning more than their managers. Output the employee's first name along with the corresponding salary.
+
+Table:  employee   
+
+(id int),  
+(first_name varchar),  
+(last_name varchar),  
+(salary int),   
+(manager_id int)  
+
+**Solution 1**
+
+Чтобы сопоставить зарплаты работников и менеджеров, объединяем таблицу саму с собой, используя алиасы. В итоговой таблице каждому сотруднику сопоставляется его менеджер и появляется возможность сравнить их зарплаты.
+
+```sql
+SELECT
+    emp.first_name, 
+    emp.salary AS employee_salary,
+    mgr.salary AS manager_salary
+FROM employee AS emp 
+JOIN employee AS mgr ON  emp.manager_id = mgr.id 
+WHERE emp.salary > mgr.salary;
+```
+**Solution 2**
+
+Другой более объемный по коду способ - с помощью CTE сгенерировать отдельную таблицу менеджеров и уже ее сравнивать с таблицей работников 
+
+```sql
+WITH manager AS ( --Таблица зарплат менеджеров
+    SELECT manager_id, salary
+    FROM employee
+    WHERE id = manager_id
+    )
+SELECT first_name, emp.salary as employee_salary, mgr.salary AS manager_salary
+FROM employee AS emp --Таблица зарплат работников
+JOIN manager AS mgr ON emp.manager_id = mgr.manager_id
+WHERE emp.salary > mgr.salary
+ORDER BY emp.salary DESC;
+```
+
+ **Output**
+
+|first_name|employee_salary|manager_salary|
+|---|--:|--:|
+|Richerd|250000|200000|
 </details>
