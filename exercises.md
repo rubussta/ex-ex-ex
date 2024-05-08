@@ -927,3 +927,52 @@ ORDER BY emp.salary DESC;
 |---|--:|--:|
 |Richerd|250000|200000|
 </details>
+<details>
+<summary>Упражнение "Highest Cost Orders": JOIN таблиц в CTE и вложенный SELECT для сложной фильтрации</summary>
+<br><p>ID 9915</p>  
+	
+Find the customer with the highest daily total order cost between 2019-02-01 to 2019-05-01. If customer had more than one order on a certain day, sum the order costs on daily basis. Output customer's first name, total cost of their items, and the date. For simplicity, you can assume that every first name in the dataset is unique.
+
+Table:  customers
+
+(id int),  
+(first_name varchar),  
+(last_name varchar),  
+(city varchar),  
+(address varchar),  
+(phone_number varchar) 
+
+Table: orders  
+
+(id int),  
+(cust_id int),  
+(order_date datetime),  
+(order_details varchar),  
+(total_order_cost int)  
+
+**Solution**
+
+Сложное условие фильтрации разбиваем на две задачи. Сначала в CTE отбыраем клиентов с максимальной суммой заказов в указанном интервале времени. Заказы одних и тех же клиентов с одинаковой суммой суммируются. Здесь же с помощью JOIN присоединяем к заказам имена клиентов. Затем из построенной в CTE "виртуальной" таблицы отбираем заказ с максимальной суммой.
+
+```sql
+WITH cast_orders AS (
+    SELECT cust_id,
+        first_name, 
+        sum(o.total_order_cost) AS total_order_cost, 
+        order_date
+    FROM orders AS o
+    LEFT JOIN customers AS c ON o.cust_id = c.id
+    WHERE o.order_date >= '2019-02-01' AND o.order_date <= '2019-05-01'
+    GROUP BY first_name, cust_id, order_date
+    )
+SELECT first_name, total_order_cost, order_date
+FROM cast_orders
+WHERE total_order_cost = (SELECT max(total_order_cost) FROM cast_orders);
+```
+
+ **Output**
+
+|first_name|total_order_cost|order_date|
+|---|--:|---|
+|Jill|275|2019-04-19|
+</details>
