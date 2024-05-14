@@ -976,3 +976,70 @@ WHERE total_order_cost = (SELECT max(total_order_cost) FROM cast_orders);
 |---|--:|---|
 |Jill|275|2019-04-19|
 </details>
+<details>
+<summary>Упражнение "Largest Olympics": поиск максимума с ранжированием уникальных строк</summary>
+<br><p>ID 9942</p>  
+	
+Find the Olympics with the highest number of athletes. The Olympics game is a combination of the year and the season, and is found in the 'games' column. Output the Olympics along with the corresponding number of athletes.
+
+Table:  olympics_athletes_events  
+
+id: int  
+name: varchar  
+sex: varchar  
+age: float  
+height: float  
+weight: datetime  
+team: varchar  
+noc: varchar  
+games: varchar  
+year: int  
+season: varchar  
+city: varchar  
+sport: varchar  
+event: varchar  
+medal: varchar  
+
+**Solution**
+
+В задании не оговорено, что нужно объединять зимние и летние олимпийские игры, поэтому будеи считать, что в колонке games указаны те самые игры, участников которых нужно подсчитать и найти максимум. Для этого можно сделать группировку по games и подсчитываем с помощью агрегата count() количество спортсменов по их ID. Однако, здесь со стороны датасета кроется сюрприх. ID оказываются не уникальными в рамках одних игр.
+
+Смотрим уникальность ID и видим, что есть дублирования.
+
+```sql
+SELECT games, name, count(id)
+FROM olympics_athletes_events
+GROUP BY games, name
+HAVING count(id) > 1
+ORDER BY count(id) DESC
+LIMIT 5;
+```
+ **Draft Output**
+ 
+|games|name|count|
+|---|---|--:|
+|1908 Summer|Samuel Sam Blatherwick|3|
+|1904 Summer|Albertson Van Zo Post|2|
+|1908 Summer|Leslie George Rich|2|
+|1924 Summer|Pierre Tolar|2|
+|1992 Winter|Ole Kristian Furuseth|2
+|1994 Winter|Christine Jacoba Aaftink|2|
+
+Используем DISTINCT для отбора уникальных строк таблицы. Для определения максимального количества спортсменов среди прошедших игр можно поступить ннесколькими способами. Поскольку в PostgreSQL отсутствует функция TOP, то мы сортируем строки по убыванию и оставляем самую верхнюю. Также можно сформировать таблицу в CTE и затем уже в ней искать максимум с помощью функции max(). 
+
+В данном датасете арят ли может быть ситуация, что вх играх в разные годы принимало участие одинаковое кол-во участников. Но если предусмотреть и такую возмозможность, то в качестве финальной агрегатной функции можно использовать плотный ранг dense_rank() в оконной функции и тогда, если было несколько одинаковых максимальных чисел, то у них у всех будет ранг = 1. 
+
+```sql
+SELECT games, count(DISTINCT id) AS athletes_count
+FROM olympics_athletes_events
+GROUP BY games
+ORDER BY count(id) DESC
+LIMIT 1;
+```
+
+ **Output**
+
+|games|athletes_count|
+|---|--:|
+|1924 Summer|118|
+</details>
