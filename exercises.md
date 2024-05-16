@@ -1014,7 +1014,6 @@ HAVING count(id) > 1
 ORDER BY count(id) DESC
 LIMIT 5;
 ```
- **Draft Output**
  
 |games|name|count|
 |---|---|--:|
@@ -1042,4 +1041,41 @@ LIMIT 1;
 |games|athletes_count|
 |---|--:|
 |1924 Summer|118|
+</details>
+<details>
+<summary>Упражнение "Top Ranked Songs": группировка с агрегатом и ранжированием (#GROUP BY#count#ORDER BY)</summary>
+<br><p>ID 9991</p>  
+	
+Find songs that have ranked in the top position. Output the track name and the number of times it ranked at the top. Sort your records by the number of times the song was in the top position in descending order.
+
+Table: spotify_worldwide_daily_song_ranking
+
+id: int  
+position: int  
+trackname: varchar  
+artist: varchar 
+streams: int 
+url: varchar  
+date: datetime  
+region: varchar   
+
+**Solution**
+
+На первом этапе для ускорения запроса фильтруем терки с рейтингом = 1 и затем делаем группировку по треку и подсчитываем количество попаданий в топы, и сортируем это количество по убыванию.
+
+```sql
+SELECT trackname, count(position) AS times_top1
+FROM spotify_worldwide_daily_song_ranking
+WHERE position = 1
+GROUP BY trackname
+ORDER BY times_top1 DESC;
+```
+
+ **Output**
+
+|trackname|times_top1|
+|---|--:|
+|HUMBLE.|7|
+|Bad and Boujee (feat. Lil Uzi Vert)|1|
+|Look What You Made Me Do|1|
 </details>
