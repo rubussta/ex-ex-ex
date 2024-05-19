@@ -1079,3 +1079,47 @@ ORDER BY times_top1 DESC;
 |Bad and Boujee (feat. Lil Uzi Vert)|1|
 |Look What You Made Me Do|1|
 </details>
+<details>
+<summary>Упражнение "Election Results": вложкнные подзапросы с оконными функциями (#OVER#cdense_rank()#round())</summary>
+<br><p>ID 2099</p>  
+	
+The election is conducted in a city and everyone can vote for one or more candidates, or choose not to vote at all. Each person has 1 vote so if they vote for multiple candidates, their vote gets equally split across these candidates. For example, if a person votes for 2 candidates, these candidates receive an equivalent of 0.5 vote each.
+Find out who got the most votes and won the election. Output the name of the candidate or multiple names in case of a tie. To avoid issues with a floating-point error you can round the number of votes received by a candidate to 3 decimal places.
+
+Table:  voting_results
+
+voter: varchar  
+candidate: varchar 
+
+**Solution**
+
+Сначала в окне с избирателями расчитываем долю кандидата в бюллетене. Оборачиваем это в подзапрос и по сгруппированным кандидатам расчитываем в оконной функции сумму долей кандидата и плотный ранг результ атов голосования. Чтобы по условию задачи возвратить победителя голосования, оборачиваем все это еще в один подзапрос и отфильтровываем строки с нужным рангом. Для наглядности берем три первых места.
+
+
+```sql
+SELECT  candidate, total_vote_score, place
+    FROM
+        (SELECT
+           candidate,
+           round(sum(vote_num), 3) AS total_vote_score, -- Итоговая сумма очков кандидата
+           dense_rank() OVER (ORDER BY round(sum(vote_num), 3) DESC) AS place
+        FROM
+            (SELECT 
+                voter,
+                candidate,
+                1.0 / count(*) OVER (PARTITION BY voter) AS vote_num -- Доля кандидата в бюллетене
+            FROM voting_results
+            WHERE candidate IS NOT NULL) AS candidate_score -- Исключаем неголосовавших
+        GROUP BY candidate) AS vote_winer
+WHERE place < 4; -- тройка победителей голосования
+
+```
+
+ **Output**
+
+|candidate|total_vote_score|place|
+|---|--:|--:|
+|Christine|5.283|1|
+|Ryan|5.15|2|
+|Nicole|2.7|3|
+</details>
