@@ -1123,3 +1123,51 @@ WHERE place < 4; -- тройка победителей голосования
 |Ryan|5.15|2|
 |Nicole|2.7|3|
 </details>
+<details>
+<summary>Упражнение "Most Profitable Companies": вложкнные подзапросы с оконной функцией ранжирования (#OVER#cdense_rank()#GROUPBY#ORDERBY())</summary>
+<br><p>ID 10354</p>  
+	
+Find the 3 most profitable companies in the entire world. Output the result along with the corresponding company name. Sort the result based on profits in descending order.
+
+Table:  forbes_global_2010_2014s
+
+company: varchar  
+sector: varchar  
+industry: varchar  
+continent: varchar  
+country: varchar  
+marketvalue: float  
+sales: float  
+profits: float  
+assets: float  
+rank: int  
+forbeswebpage: varchar  
+
+**Solution**
+
+Из имени таблицы датасета понятно, что жанные там содержаться за несколько лет и часть компаний должна дублироваться. Поэтому группируем компании по название и считаем сумму прибыли за все годы. Оборачивам эту таблицу в подзапрос и по ней считаем плотный ранг danse_rank() для построения рейтинга по суммарной прибыли. Эту конструкцию также оболрачиваем в подзапрос для отбора ТОП-3 компаний по рангу. danse_rank() можно просто заменить ранжированием с лимитом на 3 записи, поскольку наврят ли прибыль будет одинаковой у двух компаний, но поскольку в датасете низкая точность этого атрибута, то используем плотный ранг на случай, если в  ТОП-3 окажется 4 компании. 
+
+
+```sql
+SELECT company, profit
+FROM (
+    SELECT company, profit, dense_rank() OVER ( ORDER BY profit DESC) AS r
+    FROM (
+        SELECT  company, sum(profits) AS profit
+        FROM forbes_global_2010_2014
+        GROUP BY company
+        ) AS company_list -- Список компаний с суммарной прибылью
+    ) AS r_comp_list -- Список ранжированных компаний
+WHERE r <= 3
+ORDER BY profit DESC;
+
+```
+
+ **Output**
+
+|company|profit|
+|---|--:|
+|ICBC|42.7|
+|Gazprom|39|
+|Apple|37|
+</details>
