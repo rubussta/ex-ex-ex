@@ -1124,7 +1124,7 @@ WHERE place < 4; -- тройка победителей голосования
 |Nicole|2.7|3|
 </details>
 <details>
-<summary>Упражнение "Most Profitable Companies": вложкнные подзапросы с оконной функцией ранжирования (#OVER#cdense_rank()#GROUPBY#ORDERBY())</summary>
+<summary>Упражнение "Most Profitable Companies": вложкнные подзапросы с оконной функцией ранжирования (#OVER#dense_rank()#GROUPBY#ORDERBY())</summary>
 <br><p>ID 10354</p>  
 	
 Find the 3 most profitable companies in the entire world. Output the result along with the corresponding company name. Sort the result based on profits in descending order.
@@ -1170,4 +1170,74 @@ ORDER BY profit DESC;
 |ICBC|42.7|
 |Gazprom|39|
 |Apple|37|
+</details>
+<details>
+<summary>Упражнение "Workers With The Highest Salaries": оконная функция ранжирования либо условное выражение (#OVER#dense_rank()#CASE)</summary>
+<br><p>ID 10353</p>  
+	
+You have been asked to find the job titles of the highest-paid employees. Your output should include the highest-paid title or multiple titles with the same salary.
+
+Table: worker, title  
+
+worker_id: int  
+first_name: varchar  
+last_name: varchar  
+salary: int  
+joining_date: datetime  
+department: varchar  
+
+Table: title  
+
+worker_ref_id: int  
+worker_title: varchar  
+affected_from: datetime  
+
+**Solution 1**
+
+Объединяем две таблицы в одну через внутреннее соединение JOIN. Полученную общую таблицу ранжируем по зарплатам в оконной функции плотного ранга  dense_rank() и затем из полученного результата отбираем работников с наивысшим  рангом по зарплатам. Поскольку функция ранжирования является плотной, то одинаковым зарплатам присваивается одинаковый ранг без пропуска очередности. 
+
+```sql
+SELECT
+worker_title AS best_paid_title 
+FROM
+    (SELECT 
+        worker_title, 
+        salary,
+        dense_rank() OVER (ORDER BY salary DESC) AS salary_rank -- Ранг работника по зарплате
+    FROM worker AS w
+    JOIN title AS t ON w.worker_id = t.worker_ref_id) AS ws -- Общий список работников с долджностями и зарплатами
+WHERE salary_rank = 1;
+
+```
+
+ **Output 1**
+
+|best_paid_title|
+|---|
+|Manager|
+|Asst. Manager|
+
+
+**Solution 2**
+
+После объединения таблиц используем условное выражение CASE и агрегатную функцию max() в подзапросе для переопределения типа отношения по нужному нам условию максимальных зарплат и затем возвращаем эти строки нужного нам типа, отсекая ненужные с типом NULL.
+
+```sql
+SELECT best_paid_title
+FROM
+    (SELECT 
+        CASE WHEN salary = (SELECT max(salary) FROM worker) THEN worker_title 
+        END AS best_paid_title
+    FROM worker AS w
+    JOIN title AS t ON w.worker_id = t.worker_ref_id) AS ws
+WHERE best_paid_title IS NOT NULL;
+
+```
+
+ **Output 2**
+
+|best_paid_title|
+|---|
+|Manager|
+|Asst. Manager|
 </details>
