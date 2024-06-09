@@ -1,16 +1,23 @@
 ## stratascratch.com (PostgreSQL)
 <details>
-<summary>Упражнение "Share of Active Users": расчет доли с дополнительным условием</summary>
-ID 2005<br>
-<p>Output share of US users that are active. Active users are the ones with an "open" status in the table.</p>
-<p>Выведите долю активных пользователей в США. Активные пользователи - это те, у кого в таблице статус "open".</p>
-Table: fb_active_users<br>
-user_id: int<br>
-name: varchar<br>
-status: varchar<br>
-country: varchar
+<summary>Упражнение "Доля активных пользователей": приведение типов с использование условного или агрегатного выражения #round() #count() #CASE_WHEN #FILTER</summary>
+	
+ID 2005  
+	
+"Share of Active Users"
+Output share of US users that are active. Active users are the ones with an "open" status in the table.  
+
+"Доля активных пользователей"
+Выведите долю активных пользователей в США. Активные пользователи - это те, у кого в таблице статус "open".  
+
+Table: fb_active_users  
+user_id: int   
+name: varchar  
+status: varchar  
+country: varchar  
 
  **Solution**
+ 
 ```sql
 -- Чтобы формула "заработала" нужно поривести одно из значений к numeric.
 -- Вариант 1.
@@ -39,17 +46,24 @@ FROM fb_active_users;
 
 </details>
 <details>
-<summary>Упражнение "New Products": сравнение периодов, выделенных из одной колонки таблицы</summary>
-ID 10318<br>
-<p>You are given a table of product launches by company by year. Write a query to count the net difference between the number of products companies launched in 2020 with the number of products companies launched in the previous year. Output the name of the companies and a net difference of net products released for 2020 compared to the previous year.</p>
-<p>Вам предоставляется таблица запусков продуктов компаниями по годам. Напишите запрос, чтобы подсчитать чистую разницу между количеством продуктов, запущенных компаниями в 2020 году, и количеством продуктов, запущенных компаниями в предыдущем году. Выведите названия компаний и разницу в количестве продуктов, выпущенных за 2020 год, по сравнению с предыдущим годом.</p>
+<summary>Упражнение "Новые продукты": сравнение периодов, выделенных из одной колонки таблицы с помощью CTE или подзапросов #WITH_AS #JOIN</summary>
 
-Table: car_launches</br>
-year: int</br>
-company_name: varchar</br>
-product_name: varchar
+ID 10318  
+	
+"New Products"  
+You are given a table of product launches by company by year. Write a query to count the net difference between the number of products companies launched in 2020 with the number of products companies launched in the previous year. Output the name of the companies and a net difference of net products released for 2020 compared to the previous year.
+
+"Новые продукты"  
+Вам предоставляется таблица запусков продуктов компаниями по годам. Напишите запрос, чтобы подсчитать чистую разницу между количеством продуктов, запущенных компаниями в 2020 году, и количеством продуктов, запущенных компаниями в предыдущем году. Выведите названия компаний и разницу в количестве продуктов, выпущенных за 2020 год, по сравнению с предыдущим годом.
+
+Table: car_launches  
+
+year: int  
+company_name: varchar  
+product_name: varchar  
 
  **Solution**
+ 
 ```sql
 -- Вариант 1
 
@@ -83,7 +97,7 @@ SELECT prod_2020.company_name, count(DISTINCT prod_2020.product_name) - count(DI
         FROM car_launches
         WHERE year = 2020) AS prod_2020
     JOIN 
-       ( SELECT  company_name, product_name, year
+       (SELECT  company_name, product_name, year
         FROM car_launches
         WHERE year = 2020 - 1) AS prod_2019
     ON prod_2020.company_name = prod_2019. company_name
@@ -103,23 +117,26 @@ Honda|-3|
 
 </details>
 <details>
-<summary>Упражнение "Premium Acounts": добавление к таблице колонок на основе данных этой же таблицы</summary>
-ID 2097<br>
-<p>You are given a dataset that provides the number of active users per day per premium account. 
-A premium account will have an entry for every day that it’s premium. However, a premium account may be temporarily discounted and considered not paid, this is indicated by a value of 0 in the final_price column for a certain day. 
-Find out how many premium accounts that are paid on any given day are still premium and paid 7 days later.</p>
+<summary>Упражнение "Премиальные аккаунты": добавление к таблице колонок на основе данных этой же таблицы #LEFT_JOIN</summary>
+ID 2097  
+	
+"Premium Acounts"  
+You are given a dataset that provides the number of active users per day per premium account. 
+A premium account will have an entry for every day that it’s premium. However, a premium account may be temporarily discounted and considered not paid, this is indicated by a value of 0 in the final_price column for a certain day. Find out how many premium accounts that are paid on any given day are still premium and paid 7 days later.  
 
-<p>Output the date, the number of premium and paid accounts on that day, and the number of how many of these accounts are still premium and paid 7 days later. 
-Since you are only given data for a 14 days period, only include the first 7 available dates in your output.</p>
+Output the date, the number of premium and paid accounts on that day, and the number of how many of these accounts are still premium and paid 7 days later. 
+Since you are only given data for a 14 days period, only include the first 7 available dates in your output.
 
-Table: premium_accounts_by_day<br>
-account_id: varchar<br>
-entry_date: datetime<br>
-users_visited_7d: int<br>
-final_price: int<br>
-plan_size: int
+Table: premium_accounts_by_day
+
+account_id: varchar  
+entry_date: datetime  
+users_visited_7d: int  
+final_price: int  
+plan_size: int  
 
  **Solution**
+ 
 ```sql
 -- Чтобы получить для решения две колонки, таблица объединяется сама с собой.
 -- Далее отбираются нужные строки, которые агрегируются по дате.
@@ -1080,7 +1097,7 @@ ORDER BY times_top1 DESC;
 |Look What You Made Me Do|1|
 </details>
 <details>
-<summary>Упражнение "Election Results": вложкнные подзапросы с оконными функциями (#OVER#cdense_rank()#round())</summary>
+<summary>Упражнение "Election Results": вложкнные подзапросы с оконными функциями #OVER #cdense_rank() #round() </summary>
 <br><p>ID 2099</p>  
 	
 The election is conducted in a city and everyone can vote for one or more candidates, or choose not to vote at all. Each person has 1 vote so if they vote for multiple candidates, their vote gets equally split across these candidates. For example, if a person votes for 2 candidates, these candidates receive an equivalent of 0.5 vote each.
@@ -1124,9 +1141,11 @@ WHERE place < 4; -- тройка победителей голосования
 |Nicole|2.7|3|
 </details>
 <details>
-<summary>Упражнение "Most Profitable Companies": вложкнные подзапросы с оконной функцией ранжирования (#OVER#dense_rank()#GROUPBY#ORDERBY())</summary>
-<br><p>ID 10354</p>  
+<summary>Упражнение "Самые высокодоходные компании": вложкнные подзапросы с оконной функцией ранжирования #OVER #dense_rank() #GROUP_BY #ORDER_BY </summary>
+
+ID 10354   
 	
+"Most Profitable Companies"  
 Find the 3 most profitable companies in the entire world. Output the result along with the corresponding company name. Sort the result based on profits in descending order.
 
 Table:  forbes_global_2010_2014s
@@ -1172,9 +1191,11 @@ ORDER BY profit DESC;
 |Apple|37|
 </details>
 <details>
-<summary>Упражнение "Workers With The Highest Salaries": оконная функция ранжирования либо условное выражение (#OVER#dense_rank()#CASE)</summary>
-<br><p>ID 10353</p>  
-	
+<summary>Упражнение "Работники с самыми высокими зарплатами": оконная функция ранжирования либо условное выражение #OVER #dense_rank() #CASE </summary>
+
+ID 10353   
+
+"Workers With The Highest Salaries"  
 You have been asked to find the job titles of the highest-paid employees. Your output should include the highest-paid title or multiple titles with the same salary.
 
 Table: worker, title  
@@ -1210,14 +1231,6 @@ WHERE salary_rank = 1;
 
 ```
 
- **Output 1**
-
-|best_paid_title|
-|---|
-|Manager|
-|Asst. Manager|
-
-
 **Solution 2**
 
 После объединения таблиц используем условное выражение CASE и агрегатную функцию max() в подзапросе для переопределения типа отношения по нужному нам условию максимальных зарплат и затем возвращаем эти строки нужного нам типа, отсекая ненужные с типом NULL.
@@ -1234,7 +1247,7 @@ WHERE best_paid_title IS NOT NULL;
 
 ```
 
- **Output 2**
+ **Output**
 
 |best_paid_title|
 |---|
@@ -1242,10 +1255,11 @@ WHERE best_paid_title IS NOT NULL;
 |Asst. Manager|
 </details>
 <details>
-<summary>Упражнение "Средняя прододжительность сессии пользователя": CTE, оконная функция, объединение таблицы самой с собой (#WITH_AS#OVER#row_number()#JOIN)</summary>
-<br><p>ID 10352</p>  
+<summary>Упражнение "Средняя прододжительность сессии пользователя": CTE, оконная функция, объединение таблицы самой с собой #WITH_AS #OVER #row_number() #JOIN </summary>
+
+ID 10352  
+
 "Users By Average Session Time"  
-	
 Calculate each user's average session time. A session is defined as the time difference between a page_load and page_exit. For simplicity, assume a user has only 1 session per day and if there are multiple of the same events on that day, consider only the latest page_load and earliest page_exit, with an obvious restriction that load time event should happen before exit time event . Output the user_id and their average session time.
 
 Table:  facebook_web_log
