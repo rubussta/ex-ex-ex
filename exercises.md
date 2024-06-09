@@ -1241,3 +1241,53 @@ WHERE best_paid_title IS NOT NULL;
 |Manager|
 |Asst. Manager|
 </details>
+<details>
+<summary>Упражнение "Средняя прододжительность сессии пользователя": CTE, оконная функция, объединение таблицы самой с собой (#WITH_AS#OVER#row_number()#JOIN)</summary>
+<br><p>ID 10352</p>  
+"Users By Average Session Time"  
+	
+Calculate each user's average session time. A session is defined as the time difference between a page_load and page_exit. For simplicity, assume a user has only 1 session per day and if there are multiple of the same events on that day, consider only the latest page_load and earliest page_exit, with an obvious restriction that load time event should happen before exit time event . Output the user_id and their average session time.
+
+Table:  facebook_web_log
+
+user_id: int  
+timestamp: datetime  
+action: varchar  
+
+**Solution**
+
+Метрика поведения пользователя Average Session Time или Average Session Duration (ASD) - средняя продолжительность сессии. На первом этапе в общем табличном выражении формируем пронумерованный упорядоченный список действий пользователя, состоящий из открытия и закрытия сессий. Эту нумерацию будем использовать во втором табличном выражении для объединения таблицы самой с собой со сдвигом для формирования новой таблицы, в которой одна сессия будет записана в одну строку с колонками начала и окончания сессии. В такой таблице появляется возможность расчитать длину сессии как разницу между этими колонками. На третьем этапе группируем полученную объединенную таблицу по пользователям и с помощью агрегатной функции расчитываем среднее время сессии по поллученным интервалам в секундах.
+
+```sql
+WITH ordered_actions AS -- Таблица открытия и закрытия сессий пользователя, упорядоченных по времени
+(
+    SELECT user_id, timestamp, action,
+        row_number () OVER (PARTITION BY user_id ORDER BY timestamp) AS seg_num
+    FROM facebook_web_log
+    WHERE action = 'page_load' OR action = 'page_exit'
+),
+matched_sessions AS -- Таблица сессий пользователя по одной на строку
+(
+    SELECT
+        tab1.user_id,
+        tab1.timestamp AS load_time, -- Время начала сессии
+        tab2.timestamp AS exit_time, -- Время окончания сессии
+        tab2.timestamp - tab1.timestamp AS session_duration -- Продолжительность сессии в секундах
+    FROM ordered_actions AS tab1
+    JOIN ordered_actions AS tab2 ON tab1.user_id = tab2.user_id AND
+    tab1.seg_num = tab2.seg_num - 1
+    WHERE tab1.action = 'page_load' AND tab2.action = 'page_exit' 
+)
+SELECT user_id, avg(session_duration) AS avg_session_duration
+FROM matched_sessions
+GROUP BY user_id;
+
+```
+
+ **Output**
+
+|user_id|avg_session_duration|
+|---|--:|
+|0|1883.5|
+|1|35|
+</details>
