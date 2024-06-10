@@ -1305,3 +1305,53 @@ GROUP BY user_id;
 |0|1883.5|
 |1|35|
 </details>
+<details>
+<summary>Упражнение "Ранг активности": CTE, ранжирование с сортировкой по двум разным условиям #WITH_AS #OVER #row_number() </summary>
+
+ID 10351  
+
+"Activity Rank"  
+Find the email activity rank for each user. Email activity rank is defined by the total number of emails sent. The user with the highest number of emails sent will have a rank of 1, and so on. Output the user, total emails, and their activity rank. Order records by the total emails in descending order. Sort users with the same number of emails in alphabetical order.
+In your rankings, return a unique value (i.e., a unique rank) even if multiple users have the same number of emails. For tie breaker use alphabetical order of the user usernames.
+
+Table:  google_gmail_emails
+
+id: int  
+from_user: varchar  
+to_user: varchar  
+day: int   
+
+**Solution**
+
+В этом задании нужно проранжировать отправителей писем по их активности в исходяжих письмах, но результат вернуть такой, чтобы пользователи с одинаковым рангом (количеством писем) были дополнительно отсортированы по алфавиту. Для лучшей читаемости запроса сформируем таблицу пользователей с метрикой activity rank (total_emails) и потом будем ранжировать уже ее. Пронумеруем строки, как указано в задании, по убыванию количества написанных писем при поможи оконной функции row_number() с аргументами, сосотоящими из двух условий сортировки: по убыванию числа писем и по возрастанию имени пользователя по алфавиту.
+
+```sql
+WITH activity_rank AS -- Таблица рангов пользователей по e-mail активности
+(
+SELECT 
+    from_user,
+    count(from_user) AS total_emails
+FROM google_gmail_emails
+GROUP BY from_user
+)
+SELECT
+    from_user,
+    total_emails,
+    row_number() OVER (ORDER BY total_emails DESC, from_user ASC) AS row_number -- Ранг с сортировккой по метрике и имени оправителя
+FROM  activity_rank
+LIMIT 5;
+
+```
+
+ **Output**
+
+
+|from_user|total_emails|row_number|
+|---|--:|--:|
+|32ded68d89443e808|19|1|
+|ef5fe98c6b9f313075|19|2|
+|5b8754928306a18b68|18|3|
+|55e60cfcc9dc49c17e|16|4|
+|91f59516cb9dee1e88|16|5|
+</details>
+
