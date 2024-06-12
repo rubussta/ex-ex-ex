@@ -1354,4 +1354,52 @@ LIMIT 5;
 |55e60cfcc9dc49c17e|16|4|
 |91f59516cb9dee1e88|16|5|
 </details>
+<details>
+<summary>Упражнение "Weekly active users (WAU)": оконная функция, self join #log() #OVER #JOIN </summary>
 
+ID 10322  
+
+"Finding User Purchases"  
+Write a query that'll identify returning active users. A returning active user is a user that has made a second purchase within 7 days of any other of their purchases. Output a list of user_ids of these returning active users.
+
+Table:  amazon_transactions
+
+id: int  
+user_id: int  
+item: varchar  
+created_at: datetime  
+revenue: int  
+
+**Solution**
+
+Как обычно задача может быть решена несколькими способами в зависимости от того, как вычисляется длина окна совершения повторной покупки: [Query that'll identify returning active users in span of week.](https://stackoverflow.com/questions/65708991/query-thatll-identify-returning-active-users-in-span-of-week)
+
+В нашем варианте для каждого пользователя в его окне рнасчитывается лаг между покупками в днях с помощью оконной функции lag(). Полученое количество дней совершения повторных покупок оборачивается в подзапрос из результатов которого можно отфильтровать активных в течение недели пользователей. Эту оконную функцию также можно упаковать в CTE и применять для расчета других метрик, например, TBP ― Time Between Purchases.
+
+```sql
+-- Вариант 1
+--
+SELECT DISTINCT (user_id) -- Уникальные активные пользователи
+FROM
+    (SELECT -- Пользователи с количеством дней повторных покупок
+        user_id,
+        created_at - lag(created_at) OVER (PARTITION BY user_id ORDER BY created_at) AS second_parchase_day
+    FROM amazon_transactions) AS spd
+WHERE second_parchase_day < 8 -- Пользователи с повторной покупкой не старше 7 дней
+LIMIT 5;
+
+```
+
+Другим способом решения задачи может быть использование [self join](https://sky.pro/wiki/sql/osnovy-self-join-v-sql-ponyatie-i-realniy-primer-ispolzovaniya/) - соединения таблицы со своей копией с нужным условием.
+
+ **Output**
+
+
+|user_id|
+|--:|
+|100|
+|103|
+|105|
+|109|
+|110|
+</details>
