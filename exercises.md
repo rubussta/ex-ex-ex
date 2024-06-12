@@ -1392,6 +1392,20 @@ LIMIT 5;
 
 Другим способом решения задачи может быть использование [self join](https://sky.pro/wiki/sql/osnovy-self-join-v-sql-ponyatie-i-realniy-primer-ispolzovaniya/) - соединения таблицы со своей копией с нужным условием.
 
+```sql
+-- Вариант 2
+--
+SELECT 
+    DISTINCT (a.user_id) AS user_id
+FROM amazon_transactions AS a
+JOIN amazon_transactions AS b ON
+    a.user_id = b.user_id 
+    AND a.id <> b.id
+    AND b.created_at::date - a.created_at::date BETWEEN 0 AND 7 
+ORDER BY a.user_id;
+
+```
+
  **Output**
 
 
