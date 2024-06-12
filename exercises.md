@@ -1383,7 +1383,7 @@ SELECT DISTINCT (user_id) -- Уникальные активные пользо�
 FROM
     (SELECT -- Пользователи с количеством дней повторных покупок
         user_id,
-        created_at - lag(created_at) OVER (PARTITION BY user_id ORDER BY created_at) AS second_parchase_day
+        created_at::date - lag(created_at::date) OVER (PARTITION BY user_id ORDER BY created_at) AS second_parchase_day
     FROM amazon_transactions) AS spd
 WHERE second_parchase_day < 8 -- Пользователи с повторной покупкой не старше 7 дней
 LIMIT 5;
@@ -1402,7 +1402,8 @@ JOIN amazon_transactions AS b ON
     a.user_id = b.user_id 
     AND a.id <> b.id
     AND b.created_at::date - a.created_at::date BETWEEN 0 AND 7 
-ORDER BY a.user_id;
+ORDER BY a.user_id
+LIMIT 5;
 
 ```
 
