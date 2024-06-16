@@ -1418,3 +1418,74 @@ LIMIT 5;
 |109|
 |110|
 </details>
+<details>
+<summary>Упражнение "Проекты с перерасходом по ФОТ": объединение таблиц многие-ко-многим с условием фильтрации по формуле #JOIN #date #ceil() #sum() </summary>
+
+ID 10304  
+
+"Risky Projects"  
+dentify projects that are at risk for going overbudget. A project is considered to be overbudget if the cost of all employees assigned to the project is greater than the budget of the project.  
+
+You'll need to prorate the cost of the employees to the duration of the project. For example, if the budget for a project that takes half a year to complete is $10K, then the total half-year salary of all employees assigned to the project should not exceed $10K. Salary is defined on a yearly basis, so be careful how to calculate salaries for the projects that last less or more than one year.  
+
+Output a list of projects that are overbudget with their project name, project budget, and prorated total employee expense (rounded to the next dollar amount).  
+
+HINT: to make it simpler, consider that all years have 365 days. You don't need to think about the leap years.  
+
+Table:  linkedin_projects  
+
+id: int  
+title: varchar  
+budget: int  
+start_date: datetime  
+end_date: datetime   
+
+Table: linkedin_emp_projects  
+
+emp_id: int  
+project_id: int  
+
+Table: inkedin_employees  
+
+id: int  
+first_name: varchar  
+last_name: varchar  
+salary: int  
+
+**Solution**
+
+Из исходных данных имеем три таблицы со связью многие-ко-многим через простые ключи. Объединяем таблицы через INNER JOIN чтобы получить зарплаты сотрудников с привязкой к проектам.  
+
+Группируем проекты по названию и другим колонкам, участвующим в формуле расчета ФОТ. ФОТ проекта расчитываем как его продолжительность в днях, умноженная на сумму зарплат работников проекта за один день. В дальнейшем округляем ФОТ до целого функцией ceil().  
+
+Теперь нужно отобрать проеты с перерасходом по ФОТ. Оборачиваем нашу объединенную таблицу в подзапрос и накладываем условие, что ФОТ больше бюджета проекта. Возвращенные строки и будут Risky Projects
+
+```sql
+SELECT 
+    title, 
+    budget, 
+    ceil(prorated_expenses) AS prorated_employee_expense -- Округленный ФОТ проекта
+FROM 
+    (SELECT 
+        title, 
+        budget, 
+        (end_date::date - start_date::date) * (sum(salary)/365) AS prorated_expenses -- Затраты по зарплате 
+    FROM linkedin_projects AS lp 
+    JOIN linkedin_emp_projects AS lep ON lp.id = lep.project_id 
+    JOIN linkedin_employees AS le ON lep.emp_id = le.id 
+    GROUP BY title, budget, end_date, start_date) AS t 
+WHERE prorated_expenses > budget -- Перерасход проекта по зарплате
+ORDER BY title ASC
+LIMIT 5;
+
+```
+ **Output**
+
+|title|budget|prorated_employee_expense|
+|---|--:|--:|
+|Project1|29498|36293|
+|Project11|11705|31606|
+|Project12|10468|62843|
+|Project14|30014|36774|
+|Project16|19922|21875|
+</details>
