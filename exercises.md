@@ -1489,3 +1489,84 @@ LIMIT 5;
 |Project14|30014|36774|
 |Project16|19922|21875|
 </details>
+<details>
+<summary>Упражнение "Friend Acceptance Rate": CTE, JOIN #WITH_AS #LEFTJOIN </summary>
+
+ID 10285  
+
+"Acceptance Rate By Date"  
+What is the overall friend acceptance rate by date? Your output should have the rate of acceptances by the date the request was sent. Order by the earliest date to latest.  
+
+Assume that each friend request starts by a user sending (i.e., user_id_sender) a friend request to another user (i.e., user_id_receiver) that's logged in the table with action = 'sent'. If the request is accepted, the table logs action = 'accepted'. If the request is not accepted, no record of action = 'accepted' is logged.
+
+Table: fb_friend_requests  
+
+user_id_sender: varchar  
+user_id_receiver: varchar  
+date: datetime  
+action: varchar  
+
+**Solution**
+
+Из общего потока событий необходимо вычленить события отправки запросов на добавление в друзья, принятия этих запросов другими пользователями и расчитать метрику Friend Acceptance Rate. Сгенерируем два общих табличных выражения с запросами на добавление в друзья и реакцией на них. Чтобы получить цепочку событий для каждого запроса объединим эти две таблицы по идентификаторам отправителей и откликнувшихся. На основе этой общей таблицы расчитаем метрику Friend Acceptance Rate.
+
+```sql
+-- Вариант 1
+WITH sent_cte AS -- Запросы на добавление в друзья
+(
+SELECT 
+  date, 
+  user_id_sender,
+  user_id_receiver
+FROM fb_friend_requests
+WHERE action = 'sent'
+), 
+accepted_cte AS -- Добавление в друзья
+(
+SELECT
+    date, 
+    user_id_sender,
+    user_id_receiver
+FROM fb_friend_requests
+WHERE action = 'accepted'
+)
+SELECT 
+    a.date,
+    count(b.user_id_receiver)::numeric / count(a.user_id_sender)::numeric AS percentage_acceptance -- Friend Acceptance Rate
+FROM sent_cte AS a
+    LEFT JOIN accepted_cte AS b
+    ON a.user_id_sender = b.user_id_sender 
+    AND a.user_id_receiver = b.user_id_receiver
+GROUP BY a.date;
+
+```
+
+Разбить одну колонку на две можно также селф джойном, но этот вариант имеет ограницения, поскольку в условиях объединения участваует время, которое имеет формат time, т.е. это дата без времени. Таким образом, если в датасете запрос на добавление в друзья и реакция на него произошли в один день, то в объединеную таблицу эта цепочка событий не войдет. Но в нашем датесете все события разнесены более, чем на один день и результат расчета метрики получается верным.
+
+```sql
+-- Вариант 2
+--
+SELECT 
+    date, 
+    count(accepted)::numeric / count(sent)::numeric AS percentage_acceptance
+ FROM
+    (SELECT 
+        a.date AS date,
+        a.action AS sent,
+        b.action AS accepted 
+    FROM fb_friend_requests AS a
+    LEFT JOIN fb_friend_requests AS b
+        ON a.user_id_sender = b.user_id_sender AND a.user_id_receiver = b.user_id_receiver
+        AND a.date <> b.date 
+    WHERE a.action = 'sent') AS t
+GROUP BY date;
+
+```
+
+ **Output**
+
+|date|percentage_acceptance|
+|---|--:|
+|2020-01-04|0.75|
+|2020-01-06|0.667|
+</details>
