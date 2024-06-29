@@ -1570,3 +1570,70 @@ GROUP BY date;
 |2020-01-04|0.75|
 |2020-01-06|0.667|
 </details>
+<details>
+<summary>Упражнение "Ranking Most Active Guests": ранжирование оконной функцией плотного ранга #dense_rank() #OVER </summary>
+
+ID 10159  
+
+"Ranking Most Active Guests"  
+Rank guests based on the total number of messages they've exchanged with any of the hosts. Guests with the same number of messages as other guests should have the same rank. Do not skip rankings if the preceding rankings are identical. Output the rank, guest id, and number of total messages they've sent. Order by the highest number of total messages first.  
+
+Table: airbnb_contacts  
+
+id_guest: varchar  
+id_host: varchar  
+id_listing: varchar  
+ts_contact_at: datetime  
+ts_reply_at: datetime  
+ts_accepted_at: datetime  
+ts_booking_at: datetime  
+ds_checkin: datetime  
+ds_checkout: datetime  
+n_guests: int  
+n_messages: int   
+
+**Solution**
+
+Группируем пользователей по id и расчитываем количество сообщений. Ранжируем пользователей по их суммарному кол-ву сообщений с помощью оконной функции не простого, а плотного ранга dense_rank(), поскольку по условию задачи одинаковым суммам сообщений нужно назначить одинаковый ранг без пропусков.
+
+```sql
+-- Вариант 1
+SELECT
+    dense_rank() OVER (ORDER BY sum(n_messages) DESC) AS ranking,
+    id_guest,
+    sum(n_messages) AS sum_n_messages
+FROM airbnb_contacts
+GROUP BY id_guest
+LIMIT 5;
+
+```
+
+Первый шаг решения задачи по формированию таблицы с суммами сообщений пользователей можно обернуть в CTE или подзапрос
+
+```sql
+-- Вариант 2
+--
+SELECT
+    dense_rank() OVER (ORDER BY sum_n_messages DESC) AS ranking,
+    id_guest,
+    sum_n_messages
+FROM
+    (SELECT 
+        id_guest,
+        sum(n_messages) AS sum_n_messages
+    FROM airbnb_contacts
+    GROUP BY id_guest) AS t
+LIMIT 5;
+
+```
+
+ **Output**
+
+|ranking|id_guest|sum_n_messages|
+|--:|---|--:|
+|1|882f3764-05cc-436a-b23b-93fea22ea847|20|
+|1|62d09c95-c3d2-44e6-9081-a3485618227d|20|
+|2|b8831610-31f2-4c58-8ada-63b3601ca476|17|
+|2|91c2a883-04e3-4bbb-a7bb-620531318ab1|17|
+|3|6133fb99-2391-4d4b-a077-bae40581f925|16|
+</details>
