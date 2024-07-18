@@ -1424,7 +1424,7 @@ LIMIT 5;
 ID 10304  
 
 "Risky Projects"  
-dentify projects that are at risk for going overbudget. A project is considered to be overbudget if the cost of all employees assigned to the project is greater than the budget of the project.  
+Identify projects that are at risk for going overbudget. A project is considered to be overbudget if the cost of all employees assigned to the project is greater than the budget of the project.  
 
 You'll need to prorate the cost of the employees to the duration of the project. For example, if the budget for a project that takes half a year to complete is $10K, then the total half-year salary of all employees assigned to the project should not exceed $10K. Salary is defined on a yearly basis, so be careful how to calculate salaries for the projects that last less or more than one year.  
 
@@ -1571,7 +1571,7 @@ GROUP BY date;
 |2020-01-06|0.667|
 </details>
 <details>
-<summary>Упражнение "Ranking Most Active Guests": ранжирование оконной функцией плотного ранга #dense_rank() #OVER </summary>
+<summary>Упражнение "Ранжирование наиболее активных гостей в аккаунтах": ранжирование оконной функцией плотного ранга #dense_rank() #OVER </summary>
 
 ID 10159  
 
@@ -1636,4 +1636,54 @@ LIMIT 5;
 |2|b8831610-31f2-4c58-8ada-63b3601ca476|17|
 |2|91c2a883-04e3-4bbb-a7bb-620531318ab1|17|
 |3|6133fb99-2391-4d4b-a077-bae40581f925|16|
+</details>
+<details>
+<summary>Упражнение "Число арендованных номеров по национальности": объединение таблиц с условием #JOIN #DISTINCT #count() </summary>
+
+ID 10156  
+
+"Number Of Units Per Nationality"  
+Find the number of apartments per nationality that are owned by people under 30 years old.   
+Output the nationality along with the number of apartments.  
+Sort records by the apartments count in descending order.  
+
+Table:  lairbnb_hosts   
+
+host_id: int  
+nationality: varchar  
+gender: varchar  
+age: int  
+
+Table: airbnb_units  
+
+host_id: int  
+unit_id: varchar  
+unit_type: varchar  
+n_beds: int  
+n_bedrooms: int  
+country: varchar  
+city: varchar  
+
+**Solution**
+
+Нациолнальность арендаторов и тип жилья с его характеристиками находятся в разных таблицах, которые нужно объединить. Используем внутреннее соединение с наложением условий по возрасту и типу жилья по условию задачи. Т.к. в одном гостиничном номере могут проживать несколоько человек и эти кортежи попадают в общую таблицу, то через DISTINCT подсчитываем только неповторяющееся жилье.
+
+```sql
+SELECT 
+    nationality,
+    count(DISTINCT unit_id) as apartment_count
+FROM airbnb_hosts AS ah
+JOIN airbnb_units AS au ON 
+    ah.host_id = au.host_id
+    WHERE ah.age < 30 AND au.unit_type = 'Apartment'
+GROUP BY nationality
+ORDER BY apartment_count DESC;
+
+```
+ **Output**
+
+|nationality|apartment_count|
+|---|--:|
+|USA|2|
+
 </details>
