@@ -1687,3 +1687,106 @@ ORDER BY apartment_count DESC;
 |USA|2|
 
 </details>
+<details>
+<summary>Упражнение "Число пользователей продукции Apple": объединение таблиц, условное выражение, ругулярные выражения POSIX #JOIN #CASE #DISTINCT #count() #POSIX</summary>
+
+ID 10141  
+
+"Apple Product Counts"  
+Find the number of Apple product users and the number of total users with a device and group the counts by language. Assume Apple products are only MacBook-Pro, iPhone 5s, and iPad-air. Output the language along with the total number of Apple users and users with any device. Order your results based on the number of total users in descending order.  
+
+Table:  playbook_events   
+
+user_id: int  
+occurred_at: datetime  
+event_type: varchar  
+event_name: varchar  
+location: varchar  
+device: varchar   
+
+Table: playbook_users  
+
+user_id: int  
+created_at: datetime  
+company_id: int  
+language: varchar  
+activated_at: datetime  
+state: varchar    
+
+**Solution**
+
+Названия продуктов и язык пользователей находятся в разных таблицах и их нужно объединить. Уникальных пользователей нужно сгруппировать по языку и при этом отфильтровать из общего списка только пользователей Apple  м дополнительно сравнить их статистику с пулом клиентов в целом. 
+
+Вариант 1  
+В общем табличнов выражении (CTE) генерруются две таблицы для двух кат егорий пользователей, которые потом объединяются в результирующую по коючевому полю language. Пользователи Apple фильтруются по шаблону с помощьюю регулярных выражений POSIX. Плюс этого подхода в том, что запрос можно отлаживать по частям и потом обернуть их в CTE.
+
+```sql
+WITH ntu AS ( -- Общее кол-во пользователей
+    SELECT language, count(DISTINCT(pe.user_id)) AS n_total_users
+        FROM playbook_events AS pe
+        JOIN playbook_users AS pu ON pe.user_id = pu.user_id
+    GROUP BY language
+), nau AS ( --Кол-во пользователей продукции Aple
+    SELECT language, count(DISTINCT(pe.user_id)) AS n_apple_users
+        FROM playbook_events AS pe
+        JOIN playbook_users AS pu ON pe.user_id = pu.user_id
+    WHERE pe.device ~* 'MacBook.Pro' OR pe.device ~* 'iPhone.5s' OR pe.device ~* 'iPad.air'
+    GROUP BY language)
+SELECT ntu.language, COALESCE(n_apple_users, 0) AS n_apple_users, n_total_users
+    FROM ntu
+    LEFT JOIN nau ON ntu.language = nau.language
+ORDER BY n_total_users DESC;
+
+```
+Вариант 2  
+Делаем один общий JOIN, но чтобы получить сравнительную статистику, с помощью условного выражения и регулярных выражений  POSIX отделяем пользователей  Apple от всех клиентов в целом.  
+
+```sql
+SELECT users.language,
+       COUNT(DISTINCT CASE
+                           WHEN device ~* 'MacBook.Pro' THEN users.user_id
+                           WHEN device ~* 'iPhone.5s' THEN users.user_id
+                           WHEN device ~* 'iPad.air' THEN users.user_id
+                           ELSE NULL
+                       END) AS n_apple_users,
+             COUNT(DISTINCT users.user_id) AS n_total_users
+FROM playbook_users AS users
+JOIN playbook_events AS events ON users.user_id = events.user_id
+GROUP BY users.language
+ORDER BY n_total_users DESC;
+
+```
+Если есть уверенность в том, что данные хорошего качества, то можно обойтись и без проверки строк регулярными выражениями POSIX.  
+
+```sql
+SELECT users.language,
+       COUNT(DISTINCT CASE
+                           WHEN device IN ('macbook pro',
+                                           'iphone 5s',
+                                           'ipad air') THEN users.user_id
+                           ELSE NULL
+                       END) AS n_apple_users,
+             COUNT(DISTINCT users.user_id) AS n_total_users
+FROM playbook_users AS users
+JOIN playbook_events AS events ON users.user_id = events.user_id
+GROUP BY users.language
+ORDER BY n_total_users DESC;
+
+```
+ **Output**
+
+|language|n_apple_users|n_total_users|
+|---|--:|--:|
+|english|11|45|
+|spanish|3|9|
+|japanese|2|6|
+|french|0|5|
+|russian|0|5|
+|chinese|1|4|
+|german|1|3|
+|portugese|1|3|
+|indian|0|2|
+|arabic|0|2|
+|italian|1|1|
+
+</details>
