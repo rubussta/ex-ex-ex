@@ -111,7 +111,7 @@ SELECT prod_2020.company_name, count(DISTINCT prod_2020.product_name) - count(DI
 |---|---:|
 |Chevrolet|2|
 |Ford|-1|
-Honda|-3|
+|Honda|-3|
 |Jeep|1|
 |Toyota|-1|
 
@@ -157,15 +157,15 @@ LIMIT 7;
 ```
  **Output**
  
-entry_date|premium_paid_accounts|premium_paid_accounts_after_7d|
+|entry_date|premium_paid_accounts|premium_paid_accounts_after_7d|
 |---|---:|---:|
-2022-02-07|2|2|
-2022-02-08|3|2|
-2022-02-09|3|2|
-2022-02-10|4|3|
-2022-02-11|4|1|
-2022-02-12|3|2|
-2022-02-13|3|1|
+|2022-02-07|2|2|
+|2022-02-08|3|2|
+|2022-02-09|3|2|
+|2022-02-10|4|3|
+|2022-02-11|4|1|
+|2022-02-12|3|2|
+|2022-02-13|3|1|
 
 </details>
 <details>
