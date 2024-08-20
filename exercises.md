@@ -1790,3 +1790,73 @@ ORDER BY n_total_users DESC;
 |italian|1|1|
 
 </details>
+<details>
+<summary>Упражнение "Спам-посты": подсчет процентов с объединение таблиц и условным выражением #CASE #JOIN #count() #sum() </summary>
+
+ID 10134  
+
+"Spam Posts"  
+Calculate the percentage of spam posts in all viewed posts by day. A post is considered a spam if a string "spam" is inside keywords of the post. Note that the facebook_posts table stores all posts posted by users. The facebook_post_views table is an action table denoting if a user has viewed a post. 
+
+Table:  facebook_posts  
+
+post_id: int  
+poster: int  
+post_text: varchar  
+post_keywords: varchar  
+post_date: datetime    
+
+Table: facebook_post_views  
+
+post_id: int  
+viewer_id: int    
+
+**Solution**
+
+Таблица facebook_post_views представляет собой идентификаторы просмотренных постов и т.к. только они нам и нужны, то джойним к ней в данном случае справа таблицу facebook_posts с описанием самих постов. Для подсчета процентов в числителе расчитываем сумму "промаркированных" единичкой с помощью условного выражения постов, которые обозначены как spam. В качестве знаменателя формулы берем количество идентификаторов постов, т.к. там точно не будет пустых значений. 
+
+```sql
+SELECT 
+    post_date,
+    sum(CASE WHEN post_keywords ~ '#spam#' IS TRUE THEN 1 ELSE 0 END)::NUMERIC(4,1) / count(fpv.post_id) * 100 AS spam_share
+FROM facebook_posts AS fp
+RIGHT JOIN facebook_post_views AS fpv ON fp.post_id = fpv.post_id
+GROUP BY post_date;
+
+```
+
+Stratascratch  предлагает другое решение, основанное на INNER JOIN. Это внутренне соединение делается дважды. Одно, чтобы отфильтровать из общей объединенной таблицы прочитанных и непрочитанных постов общую сумму прочитанных постов. Другое - чтобы найти сумму прочитанных постов, помеченных как spam. Эти две таблицы джойнятся, чтобы получить колонки для расчета процеентов.   
+
+```sql
+SELECT spam_summary.post_date,
+       (n_spam/n_posts::float)*100 AS spam_share
+FROM
+  (SELECT post_date,
+          sum(CASE
+                  WHEN v.viewer_id IS NOT NULL THEN 1
+                  ELSE 0
+              END) AS n_posts
+   FROM facebook_posts p
+   JOIN facebook_post_views v ON p.post_id = v.post_id
+   GROUP BY post_date) posts_summary
+LEFT JOIN
+  (SELECT post_date,
+          sum(CASE
+                  WHEN v.viewer_id IS NOT NULL THEN 1
+                  ELSE 0
+              END) AS n_spam
+   FROM facebook_posts p
+   JOIN facebook_post_views v ON p.post_id = v.post_id
+   WHERE post_keywords ilike '%spam%'
+   GROUP BY post_date) spam_summary ON spam_summary.post_date = posts_summary.post_date;
+
+```
+
+ **Output**
+
+|post_date|spam_share|
+|---|---|
+|2019-01-02|50|
+|2019-01-01|100|
+</details>
+
