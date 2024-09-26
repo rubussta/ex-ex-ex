@@ -1859,4 +1859,67 @@ LEFT JOIN
 |2019-01-02|50|
 |2019-01-01|100|
 </details>
+<details>
+<summary>Упражнение "Процент высланных по почте заказов": подсчет процентов с объединением таблиц и CTE c условным выражением для строковых данных #CTE #NULLIF #CASE #JOIN #count() #sum() </summary>
 
+ID 10090  
+
+Find the percentage of shipable orders.  
+Consider an order is shipable if the customer's address is known. 
+
+Table:  orders  
+
+id: int  
+cust_id: int  
+order_date: datetime  
+order_details: varchar  
+total_order_cost: int  
+
+Table: customers  
+
+id: int  
+first_name: varchar  
+last_name: varchar  
+city: varchar  
+address: varchar  
+phone_number: varchar    
+
+**Solution**
+
+Сначала объединим две таблицы, чтобы сопосьтавить каждому заказу адрес доставки. Для удобства завернем все в CTE, где с помощью условных выражений промаркируем пустые адреса для доставки, которые найдем с помощью NULLIF. Эту колонку используем в формуле для расчета процентов.  
+
+```sql
+WITH t AS ( -- Адреса сделанных заказов
+SELECT
+CASE WHEN NULLIF(address, '') IS NULL THEN 0 -- Если в адресе NULL или пустая строка, то 0
+    ELSE 1
+END AS empty_addr_flag -- флаг пустых строк в адресах
+FROM orders AS o
+JOIN customers AS c ON o.cust_id = c.id
+)
+SELECT
+sum(empty_addr_flag)::numeric / count(empty_addr_flag)::numeric * 100 AS percent_shipable
+FROM t; 
+
+```
+
+Stratascratch  предлагает несколько иное решение с использованием подзапросов без CTE. Но тогда дважды вычисляется условное выражение: один раз для маркировки статуса адреса булевым значением и второй раз для конвертации этих значений в числа для их подсчета в формуле процента.    
+
+```sql
+SELECT
+    100 * SUM(CASE WHEN is_shipable THEN 1 ELSE 0 END) :: NUMERIC / COUNT(*) AS percent_shipable
+FROM
+    (SELECT
+        o.id,
+        CASE WHEN address IS NULL THEN False ELSE True END AS is_shipable
+    FROM orders o
+    INNER JOIN customers c ON o.cust_id = c.id) base;
+
+```
+
+ **Output**
+
+|percent_shipable|
+|:--|
+|28|
+</details>
