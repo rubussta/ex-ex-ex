@@ -1,6 +1,6 @@
 ## stratascratch.com (PostgreSQL)
 <details>
-<summary>Упражнение "Доля активных пользователей": приведение типов с использование условного или агрегатного выражения #round() #count() #CASE_WHEN #FILTER</summary>
+<summary>Упражнение "Доля активных пользователей": приведение типов с использование условного или агрегатного выражения <br>#round() #count() #CASE_WHEN #FILTER</br></summary>
 	
 ID 2005  
 	
@@ -17,21 +17,21 @@ status: varchar
 country: varchar  
 
  **Solution**
- 
-```sql
--- Чтобы формула "заработала" нужно поривести одно из значений к numeric.
--- Вариант 1.
 
--- Использование условного выражения
+Чтобы формула "заработала" нужно поривести одно из значений к numeric.  
+Вариант 1.
+Использование условного выражения
+
+```sql
 SELECT
 round(count(CASE WHEN status = 'open' THEN 1 ELSE NULL END) / count(user_id)::numeric, 1)  AS active_users_share
 FROM fb_active_users;
 ```
 
-```sql
--- Вариант 2.
--- Использование агрегатного выражения
+Вариант 2.  
+Использование агрегатного выражения
 
+```sql
 SELECT
 round(count(status) FILTER (WHERE status = 'open' ) / count(user_id)::numeric, 1) AS active_users_share
 FROM fb_active_users;
@@ -46,7 +46,7 @@ FROM fb_active_users;
 
 </details>
 <details>
-<summary>Упражнение "Новые продукты": сравнение периодов, выделенных из одной колонки таблицы с помощью CTE или подзапросов #WITH_AS #JOIN</summary>
+<summary>Упражнение "Новые продукты": сравнение периодов, выделенных из одной колонки таблицы с помощью CTE или подзапросов <br>#WITH_AS #JOIN</br></summary>
 
 ID 10318  
 	
@@ -63,10 +63,10 @@ company_name: varchar
 product_name: varchar  
 
  **Solution**
- 
-```sql
--- Вариант 1
 
+Вариант 1  
+
+```sql
 WITH prod_2020 AS  --  products launched in 2020
 (
 SELECT  company_name, count(product_name) AS launched_2020
@@ -87,10 +87,9 @@ SELECT  prod_2020.company_name, launched_2020 - launched_2019 AS net_products
     ORDER BY prod_2020.company_name;
 
 ```
+Вариант 2  
 
 ```sql
--- Вариант 2
-
 SELECT prod_2020.company_name, count(DISTINCT prod_2020.product_name) - count(DISTINCT prod_2019.product_name) AS net_products
     FROM 
        (SELECT  company_name, product_name, year
@@ -117,8 +116,9 @@ SELECT prod_2020.company_name, count(DISTINCT prod_2020.product_name) - count(DI
 
 </details>
 <details>
-<summary>Упражнение "Премиальные аккаунты": добавление к таблице колонок на основе данных этой же таблицы #LEFT_JOIN</summary>
-ID 2097  
+<summary>Упражнение "Премиальные аккаунты": добавление к таблице колонок на основе данных этой же таблицы <br>#LEFT_JOIN #count()</br></summary>  
+	
+ID 2097   
 	
 "Premium Acounts"  
 You are given a dataset that provides the number of active users per day per premium account. 
@@ -169,10 +169,12 @@ LIMIT 7;
 
 </details>
 <details>
-<summary>Упражнение "Flags per Video": преобразование строковых данных с условным выражением и очисткой от возможных пробелов"</summary>
-ID 2102<br>
-<p>For each video, find how many unique users flagged it. A unique user can be identified using the combination of their first name and last name. Do not consider rows in which there is no flag ID.</p>
-<p>Для каждого видео найдите, сколько уникальных пользователей отметили его. Уникального пользователя можно идентифицировать, используя комбинацию его имени и фамилии. Не рассматривайте строки, в которых нет идентификатора флага.</p>
+<summary>Упражнение "Flags per Video": преобразование строковых данных с условным выражением и очисткой от возможных пробелов<br>#count() #DISTINCT #concat() #trim()</br></summary>  
+	
+ID 2102  
+	
+For each video, find how many unique users flagged it. A unique user can be identified using the combination of their first name and last name. Do not consider rows in which there is no flag ID.</p>
+<p>Для каждого видео найдите, сколько уникальных пользователей отметили его. Уникального пользователя можно идентифицировать, используя комбинацию его имени и фамилии. Не рассматривайте строки, в которых нет идентификатора флага.
 
 Table: user_flags<br>
 user_firstname: varchar<br>
@@ -181,19 +183,18 @@ video_id: varchar<br>
 flag_id: varchar
 
  **Solution**
-```sql
--- Функция concat объединяет строки для формирования id. 
--- Условное выцражение COALESCE возвращает пустую строку, если нет имени или фамилии.
--- Функция trim удаляет пробелы слева и справа.
 
+Функция concat объединяет строки для формирования id. Условное выцражение COALESCE возвращает пустую строку, если нет имени или фамилии.  Функция trim удаляет пробелы слева и справа.
+
+```sql
 SELECT 
 	video_id,
 	count(DISTINCT concat(COALESCE(trim(FROM user_firstname), ''), COALESCE(trim(FROM user_lastname), ''))) num_unique_users
 FROM user_flags
 WHERE flag_id IS NOT NULL -- Отфильтровываем пользователей без флага
 GROUP BY video_id;
-```
 
+```
  **Output**
  
 |video_id|num_unique_users|
@@ -206,35 +207,35 @@ GROUP BY video_id;
 
 </details>
 <details>
-<summary>Упражнение "User with Most Approved Flags": оконная функция dense_rank без PARTITION BY</summary>
-ID 2104<br>
-<p>Which user flagged the most distinct videos that ended up approved by YouTube? Output, in one column, their full name or names in case of a tie. In the user's full name, include a space between the first and the last name.</p>
-<p>Какой пользователь отметил наиболее отличающиеся друг от друга видеоролики, которые в итоге были одобрены YouTube? Выведите в одном столбце их полное имя или фамилии в случае совпадения. В полном имени пользователя укажите пробел между именем и фамилией.</p>
-<p>Table: user_flags
-user_firstname: varchar<br>
-user_lastname: varchar<br>
-video_id: varchar<br>
-flag_id: varchar</p>
-<p>Table: flag_review<br>
-flag_id: varchar<br>
-reviewed_by_yt: bool<br>
-reviewed_date: datetime<br>
-reviewed_outcome: varchar</p>
+<summary>Упражнение "User with Most Approved Flags": оконная функция без PARTITION BY<br>#dense_rank() #OVER #concat() #trim()</br></summary>
+	
+ID 2104  
+	
+Which user flagged the most distinct videos that ended up approved by YouTube? Output, in one column, their full name or names in case of a tie. In the user's full name, include a space between the first and the last name.  
+Какой пользователь отметил наиболее отличающиеся друг от друга видеоролики, которые в итоге были одобрены YouTube? Выведите в одном столбце их полное имя или фамилии в случае совпадения. В полном имени пользователя укажите пробел между именем и фамилией.  
+	
+Table: user_flags  
+
+user_firstname: varchar  
+user_lastname: varchar  
+video_id: varchar  
+flag_id: varchar  
+
+Table: flag_review  
+
+flag_id: varchar  
+reviewed_by_yt: bool  
+reviewed_date: datetime  
+reviewed_outcome: varchar  
 
  **Solution**
-```sql
-/*
-По условию задания фактически нужно получить пользователя (или пользователей), у которого было больше всех уникальных видео, 
-которые были одобрены к публикации. Таблица flag_review отражает результат одоброения.
-Очевидно, что будет неизвестное кол-во пользователей с одинаковым числом роликов и нам неизвестен аргумент для LIMIT в связке с ORDER BY.
-Поэтому, пользователей нужно проранжировать и получить список тех, у кого наивысший ранг.
-Также вызывает вопрос идентификация пользователей по имени и фамилии по условию задачи. Но ID пользователя нет и используем, что есть. 
 
-Объединяем таблицы и отфильтровыввем строки с пользователями, у которых видео одобрены.
-Для ранжирования пользоватей используем оконную функцию dense_rank без PARTITION BY.
-Без PARTITION BY строки раздела состоят из всех строк таблицы, которые группируются с помощью GROUP BY по имени пользователя.
-Заворачиваем оконную функцию в подзапрос, чтобы отобрать пользователей с максимальным рангом.
-*/
+По условию задания фактически нужно получить пользователя (или пользователей), у которого было больше всех уникальных видео, которые были одобрены к публикации. Таблица flag_review отражает результат одоброения.
+Очевидно, что будет неизвестное кол-во пользователей с одинаковым числом роликов и нам неизвестен аргумент для LIMIT в связке с ORDER BY. Поэтому, пользователей нужно проранжировать и получить список тех, у кого наивысший ранг. Также вызывает вопрос идентификация пользователей по имени и фамилии по условию задачи. Но ID пользователя нет и используем, что есть. 
+
+Объединяем таблицы и отфильтровыввем строки с пользователями, у которых видео одобрены. Для ранжирования пользоватей используем оконную функцию dense_rank без PARTITION BY. Без PARTITION BY строки раздела состоят из всех строк таблицы, которые группируются с помощью GROUP BY по имени пользователя. Заворачиваем оконную функцию в подзапрос, чтобы отобрать пользователей с максимальным рангом.
+
+```sql
 SELECT 
     username
 FROM 
@@ -245,6 +246,7 @@ FROM
     WHERE lower(fr.reviewed_outcome) = 'approved' -- проиводим к нижнему регистру на случай разнобоя в данных по регистру
     GROUP BY username) AS user_rank
 WHERE dr = 1;
+
 ```
  **Output**
 |username|dr|
@@ -252,8 +254,6 @@ WHERE dr = 1;
 |Mark May|1|
 |Richard Hasson|1|
 
-```sql
-/*
 В нашей оконной функции рамка окна состоит из одной строки в виде агрегата количества уникальных роликов count(DISTINCT video_id).
 Если организовать разделы с помощью PARTITION BY username, то в каждом разделе (для каждого польтзователя) ранг будет равен '1'.
 Чтобы получить ранжированный список, расширяем раздел окна до всей таблицы, опуская в оконной функции PARTITION BY.
@@ -262,8 +262,9 @@ WHERE dr = 1;
 Затем по ней в виде одного раздела вычисляется функция рамки окна dense_rank.
 
 В этих результатах больше всего роликов у Марка, но в финальном запросе после наложения фильтртов по условиям задачи
-появляется еще и Ричард, т.е. в датасете присутствует 2 человека с одинаковым максимальным количеством одобренных роликов.
-*/
+появляется еще и Ричард, т.е. в датасете присутствует 2 человека с одинаковым максимальным количеством одобренных роликов.  
+
+```sql
 SELECT 
 user_firstname,
 count(video_id),
@@ -288,15 +289,20 @@ Loretta       |     1|         5|
 Helen         |     1|         5|
 Courtney      |     1|         5|
 Mary          |     1|         5|
+
 ```
 </details>
 <details>
-<summary>Упражнение "Find students with a median writing score": использование агрегатного выражения с медианой в WHERE</summary>
-<br><p>ID 9610</p>
-<p>Output ids of students with a median score from the writing SAT.</p>
-<p>Выведите идентификаторы учащихся со средним баллом по результатам письменного экзамена SAT.</p>
-Table: sat_scores
-	
+<summary>Упражнение "Найдите студентов с медианным баллом": использование агрегатного выражения с медианой в WHERE<br>#percentile_disc()</br></summary>
+
+ID 9610  
+
+"Find students with a median writing score"  
+Output ids of students with a median score from the writing SAT.  
+Выведите идентификаторы учащихся со средним баллом по результатам письменного экзамена SAT.  
+
+Table: sat_scores  
+
 (school varchar),  
 (teacher varchar),  
 (student_id float),  
@@ -308,24 +314,23 @@ Table: sat_scores
 (average_sat float)
 
 **Solution**
-```sql
-/*
+
 Для вычисления медианы в PostgreSQL используются сортирующие агрегатные функции 
 percentile_disc или percentile_cont, возвращающие дискретный или непрерывный процентиль.
-*/
+
+```sql
 SELECT student_id, sat_writing
 FROM sat_scores
-WHERE sat_writing = (
-    SELECT percentile_disc(0.5) WITHIN GROUP (ORDER BY sat_writing)
+WHERE sat_writing = (SELECT percentile_disc(0.5) WITHIN GROUP (ORDER BY sat_writing)
     FROM sat_scores);
-/*
+
+```
 Почему агрегатная функция выведена в подзапрос?
 Потому что в условии фильтрации она становится агрегатным выражением и согласно документации:
 "Агрегатное выражение может фигурировать только в списке результатов или в предложении HAVING команды SELECT. 
 Во всех остальных предложениях, например WHERE, они запрещены, так как эти предложения логически вычисляются до того, 
 как формируются результаты агрегатных функций."
-*/
-```
+
  **Output**
  
 |student_id|sat_writing|
@@ -335,9 +340,11 @@ WHERE sat_writing = (
 |113|512|
 </details>
 <details>
-<summary>Упражнение "Classify Business Type": поиск слова в тексте</summary>  
-<br><p>ID 9726</p>  
+<summary>Упражнение "Классификация бизнесов": поиск слова в тексте по шаблону<br>#CASE #POSIX #@@</br></summary>  
 
+ID 9726  
+
+"Classify Business Type"  
 Classify each business as either a restaurant, cafe, school, or other.  
 - A restaurant should have the word 'restaurant' in the business name.  
 - A cafe should have either 'cafe', 'café', or 'coffee' in the business name.  
@@ -396,6 +403,7 @@ SELECT
 ?column?|?column?|
 --------+--------+
 true    |true    |
+
 ```
 
 **1 Вариант решения**
@@ -410,6 +418,7 @@ SELECT
         END AS business_type
 FROM sf_restaurant_health_violations
 LIMIT 5;
+
 ```
 
 **Output 1**
@@ -437,6 +446,7 @@ WITH bt AS (
 SELECT  business_type, count(business_type)
 FROM bt
 GROUP BY business_type;
+
 ```
 
 |business_type|count|
@@ -460,6 +470,7 @@ SELECT DISTINCT business_name,
         END AS business_type 
 FROM sf_restaurant_health_violations
 LIMIT 5;
+
 ```
 
  **Output 2**
@@ -486,6 +497,7 @@ WITH bt AS (
 SELECT  business_type, count(business_type)
 FROM bt
 GROUP BY business_type;
+
 ```
 
 |business_type|count|
@@ -508,24 +520,29 @@ SELECT
         ELSE 'other'
         END AS business_type
 FROM sf_restaurant_health_violations;
+
 ```
 
 Output аналогичен предыдущим.
 </details>
 <details>
-<summary>Упражнение "Highest Salary In Department": оконная функция с фильтрацией по ее результатам</summary>
-<br><p>ID 9897</p>
-<p>Find the employee with the highest salary per department.
-Output the department name, employee's first name along with the corresponding salary.</p>
-Table:  employee<br>
-(id int),<br>
-(first_name varchar),<br>
-(last_name varchar),<br>
-(age int),<br>
-(sex varchar),<br>
-(employee_title varchar),<br>
-(department varchar),<br>
-(salary int)<br><br>
+<summary>Упражнение "Самая высокая зарплата по департаменту": оконная функция с фильтрацией по ее результатам<br>#rank() #OVER</br></summary>  
+
+ID 9897  
+
+"Highest Salary In Department"  
+Find the employee with the highest salary per department.  
+Output the department name, employee's first name along with the corresponding salary.  
+
+Table:  employee  
+(id int),  
+(first_name varchar),  
+(last_name varchar),  
+(age int),  
+(sex varchar),  
+(employee_title varchar),  
+(department varchar),  
+(salary int)  
 
 **Solution**
  
@@ -539,6 +556,7 @@ FROM -- Подзапрос для фильтрации по значению ran
     FROM employee) AS rr
 WHERE r = 1
 ORDER BY salary DESC;
+
 ```
 
  **Output**
@@ -550,9 +568,11 @@ ORDER BY salary DESC;
 |Audit|Shandler|1100|
 </details>
 <details>
-<summary>Упражнение "Highest Target Under Manager": оконная функция без PARTITION BY с форматированием строк</summary>
-<br><p>ID 9905</p>  
-	
+<summary>Упражнение "Наивысшие показатели по менеджерам": оконная функция без PARTITION BY с форматированием строк<br>#rank() #OVER #concat() #initcap() #trim()</br></summary>
+
+ID 9905   
+
+"Highest Target Under Manager"  
 Find the highest target achieved by the employee or employees who works under the manager id 13. Output the first name of the employee and target achieved. The solution should show the highest target achieved under manager_id=13 and which employee(s) achieved it.  
 	
 Table: salesforce_employees  
@@ -583,6 +603,7 @@ FROM
     WHERE manager_id = 13
     ) AS ranked_target
 WHERE r = 1;
+
 ```
 
  **Output**
@@ -594,9 +615,11 @@ WHERE r = 1;
 |David Warner|400|
 </details>
 <details>
-<summary>Упражнение "Find the top 10 ranked songs in 2010": исключаем повторы с помощью GROUP BY</summary>
-<br><p>ID 9650</p>  
+<summary>Упражнение "Поиск TOP10 песен в 2010 году": исключаем повторы с помощью группировки<br>#GROUP BY</br></summary>  
 	
+ID 9650  
+
+"Find the top 10 ranked songs in 2010"  
 What were the top 10 ranked songs in 2010? Output the rank, group name, and song name but do not show the same song twice. Sort the result based on the year_rank in ascending order.   
 
 Table: llboard_top_100_year_end    
@@ -616,6 +639,7 @@ FROM billboard_top_100_year_end
 WHERE year = 2010 AND (year_rank >0 AND year_rank <11)
 GROUP BY  1, 2, 3
 ORDER BY year_rank ASC;
+
 ```
 
  **Output**
@@ -634,9 +658,11 @@ ORDER BY year_rank ASC;
 |10|Taio Cruz feat. Ludacris|Break Your Heart|
 </details>
 <details>
-<summary>Упражнение "Number of violations": группировка по году в дате и расчет агрегата</summary>
-<br><p>ID 9728</p>  
+<summary>Упражнение "Количество нарушений": группировка по году в дате и расчет агрегата<br>#date_part() #count()</br></summary>  
 	
+ID 9728  
+
+"Number of violations"
 You're given a dataset of health inspections. Count the number of violation in an inspection in 'Roxanne Cafe' for each year. If an inspection resulted in a violation, there will be a value in the 'violation_id' column. Output the number of violations by year in ascending order.   
 
 Table: sf_restaurant_health_violations    
@@ -656,6 +682,7 @@ FROM sf_restaurant_health_violations
 WHERE business_name = 'Roxanne Cafe'
 GROUP BY year
 ORDER BY year ASC;
+
 ```
 
  **Output**
@@ -667,10 +694,11 @@ ORDER BY year ASC;
 |2018|3|
 </details>
 <details>
-<summary>Упражнение "Find the rate of processed tickets for each type": подсчет доли по колонке</summary>
-<br><p>ID 9781</p>  
+<summary>Упражнение "Find the rate of processed tickets for each type": подсчет доли по колонке с условным оператором<br>#CASE #sum() #count()</br></summary>  
 	
-Find the rate of processed tickets for each type.   
+ID 9781   
+
+"Find the rate of processed tickets for each type"   
 
 Table: facebook_complaints    
 
@@ -688,6 +716,7 @@ sum(CASE processed WHEN TRUE THEN 1 END)::numeric / count(processed) AS processe
 FROM facebook_complaints
 GROUP BY type
 ORDER BY type;
+
 ```
 
  **Output**
@@ -698,9 +727,11 @@ ORDER BY type;
 |1|0.667|
 </details>
 <details>
-<summary>Упражнение "Customer Revenue In March": подсчет суммы с группировкой и фильтрацией по дате</summary>
-<br><p>ID 9782</p>  
-	
+<summary>Упражнение "Доход от клиентов в марте": подсчет суммы с группировкой и фильтрацией по дате<br>#EXTRACT(field FROM source)</br></summary>
+
+ID 9782    
+
+"Customer Revenue In March"  
 Calculate the total revenue from each customer in March 2019. Include only customers who were active in March 2019.Output the revenue along with the customer id and sort the results based on the revenue in descending order.   
 
 Table: orders   
@@ -721,6 +752,7 @@ FROM orders
 WHERE EXTRACT(YEAR FROM order_date) = 2019 AND EXTRACT(MONTH FROM order_date) = 3
 GROUP BY cust_id
 ORDER BY revenue DESC;
+
 ```
 
  **Output**
@@ -733,10 +765,12 @@ ORDER BY revenue DESC;
 |12|20|
 </details>
 <details>
-<summary>Упражнение "Find the number of times each word appears in drafts": cбор статистики по документу</summary>
-<br><p>ID 9817</p>  
+<summary>Упражнение "Подсчет количества упоминаний слов в документах": cбор статистики по документу <br>#ts_stat #to_tsvector() #ILIKE</summary>
+
+ID 9817    
 	
-Find the number of times each word appears in drafts. Output the word along with the corresponding number of occurrences.  
+"Find the number of times each word appears in drafts".  
+Output the word along with the corresponding number of occurrences.  
 
 Table: google_file_store   
 
@@ -745,7 +779,7 @@ Table: google_file_store
 
 **Solution**
 
-Для подсчета количестива слов в документах, которые представлены в данном случае в виде двух строк в таблице - названия файла и собственно текста документа, используем функцию сбора статистики по документам ts_stat. Функция принимает текст в фолрмате tsvector в виде одной строки. Исходный текстовой формат преобразуем в tsvector с помощью функции to_tsvector. Возвращаемая статистика будет разной в зависимости от того, как мы определили формат tsvector и от конфигурации текстового поиска сервера. Поскольку нам нужны не все документы, то выбираем по шаблону ILIKE нужные.
+Для подсчета количестива слов в документах, которые представлены в данном случае в виде двух строк в таблице - названия файла и собственно текста документа, используем функцию сбора статистики по документам ts_stat. Функция принимает текст в формате tsvector в виде одной строки. Исходный текстовой формат преобразуем в tsvector с помощью функции to_tsvector. Возвращаемая статистика будет разной в зависимости от того, как мы определили формат tsvector и от конфигурации текстового поиска сервера. Поскольку нам нужны не все документы, то выбираем по шаблону ILIKE нужные.
 
 **1 Вариант решения**
 
@@ -755,6 +789,7 @@ Table: google_file_store
 SELECT word, nentry
 FROM ts_stat('SELECT to_tsvector(contents) FROM google_file_store WHERE filename ILIKE ''draft%''')
 ORDER BY nentry DESC;
+
 ```
 
  **Output 1**
@@ -800,6 +835,7 @@ ORDER BY nentry DESC;
 SELECT word, nentry
 FROM ts_stat('SELECT to_tsvector(''english'', contents) FROM google_file_store WHERE filename ILIKE ''draft%''')
 ORDER BY nentry DESC;
+
 ```
 
  **Output 1**
@@ -827,9 +863,11 @@ ORDER BY nentry DESC;
 |await|1|
 </details>
 <details>
-<summary>Упражнение "Make a report showing the number of survivors and non-survivors by passenger class": разбиение одной колонки на несколько</summary>
-<br><p>ID 9881</p>  
+<summary>Упражнение "Количество выживших и не выживших на Титанике в разрезе класса билетов": разбиение одной колонки на несколько по условному выражению <br>#CASE</br></summary>  
 	
+ID 9881  
+
+"Make a report showing the number of survivors and non-survivors by passenger class".  	
 Make a report showing the number of survivors and non-survivors by passenger class. Classes are categorized based on the pclass value as:
 pclass = 1: first_class  
 pclass = 2: second_classs  
@@ -854,6 +892,7 @@ count(CASE pclass WHEN  2 THEN 2 ELSE 0 END) AS second_classss,
 count(CASE pclass WHEN  3 THEN 3 ELSE 0 END) AS third_class
 FROM titanic
 GROUP BY survived;
+
 ```
 
  **Output**
@@ -864,9 +903,11 @@ GROUP BY survived;
 |1|10|12|19|
 </details>
 <details>
-<summary>Упражнение "Second Highest Salary": ранжирование с оконной функцией</summary>
-<br><p>ID 9892</p>  
+<summary>Упражнение "Вторая зарплата после самой высокой": ранжирование с оконной функцией <br>#dense_rank() #OVER</br></summary>  
 	
+ID 9892    
+
+"Second Highest Salary"
 Find the second highest salary of employees.
 
 Table:  employee   
@@ -886,6 +927,7 @@ FROM (SELECT salary,
         dense_rank() OVER (ORDER BY salary DESC) AS rnk 
         FROM employee) AS empl_rank
 WHERE rnk = 2;
+
 ```
 
  **Output**
@@ -895,9 +937,11 @@ WHERE rnk = 2;
 |200000|
 </details>
 <details>
-<summary>Упражнение "Employee and Manager Salaries": объединение таблицы самой с собой</summary>
-<br><p>ID 9894</p>  
-	
+<summary>Упражнение "Зарплата работников и их менеджеров": объединение таблицы самой с собой<br>#JOIM</br></summary>
+
+ID 9894  
+
+"Employee and Manager Salaries"  
 Find employees who are earning more than their managers. Output the employee's first name along with the corresponding salary.
 
 Table:  employee   
@@ -945,9 +989,11 @@ ORDER BY emp.salary DESC;
 |Richerd|250000|200000|
 </details>
 <details>
-<summary>Упражнение "Highest Cost Orders": JOIN таблиц в CTE и вложенный SELECT для сложной фильтрации</summary>
-<br><p>ID 9915</p>  
+<summary>Упражнение "Самы большие заказы": JOIN таблиц в CTE и вложенный SELECT для сложной фильтрации<br>#LEFT JOIN #WITH</br></summary>  
 	
+ID 9915  
+	
+"Highest Cost Orders"	
 Find the customer with the highest daily total order cost between 2019-02-01 to 2019-05-01. If customer had more than one order on a certain day, sum the order costs on daily basis. Output customer's first name, total cost of their items, and the date. For simplicity, you can assume that every first name in the dataset is unique.
 
 Table:  customers
@@ -994,9 +1040,11 @@ WHERE total_order_cost = (SELECT max(total_order_cost) FROM cast_orders);
 |Jill|275|2019-04-19|
 </details>
 <details>
-<summary>Упражнение "Largest Olympics": поиск максимума с ранжированием уникальных строк</summary>
-<br><p>ID 9942</p>  
+<summary>Упражнение "Самые большие Олимпийские игры": поиск максимума с ранжированием уникальных строк<br>#GROUP BY #ORDER BY #HAVING</br></summary>  
 	
+ID 9942  
+	
+"Largest Olympics"  	
 Find the Olympics with the highest number of athletes. The Olympics game is a combination of the year and the season, and is found in the 'games' column. Output the Olympics along with the corresponding number of athletes.
 
 Table:  olympics_athletes_events  
@@ -1097,9 +1145,9 @@ ORDER BY times_top1 DESC;
 |Look What You Made Me Do|1|
 </details>
 <details>
-<summary>Упражнение "Election Results": вложкнные подзапросы с оконными функциями #OVER #cdense_rank() #round() </summary>
+<summary>Упражнение "Результаты выборов": вложкнные подзапросы с оконными функциями <br>#OVER #cdense_rank() #round()</br></summary>
 <br><p>ID 2099</p>  
-	
+"Election Results"	
 The election is conducted in a city and everyone can vote for one or more candidates, or choose not to vote at all. Each person has 1 vote so if they vote for multiple candidates, their vote gets equally split across these candidates. For example, if a person votes for 2 candidates, these candidates receive an equivalent of 0.5 vote each.
 Find out who got the most votes and won the election. Output the name of the candidate or multiple names in case of a tie. To avoid issues with a floating-point error you can round the number of votes received by a candidate to 3 decimal places.
 
@@ -1191,7 +1239,7 @@ ORDER BY profit DESC;
 |Apple|37|
 </details>
 <details>
-<summary>Упражнение "Работники с самыми высокими зарплатами": оконная функция ранжирования либо условное выражение #OVER #dense_rank() #CASE </summary>
+<summary>Упражнение "Работники с самыми высокими зарплатами": оконная функция ранжирования либо условное выражение <br>#OVER #dense_rank() #CASE</br></summary>
 
 ID 10353   
 
@@ -1255,7 +1303,7 @@ WHERE best_paid_title IS NOT NULL;
 |Asst. Manager|
 </details>
 <details>
-<summary>Упражнение "Средняя прододжительность сессии пользователя": CTE, оконная функция, объединение таблицы самой с собой #WITH_AS #OVER #row_number() #JOIN </summary>
+<summary>Упражнение "Средняя прододжительность сессии пользователя": CTE, оконная функция, объединение таблицы самой с собой <br>#WITH_AS #OVER #row_number() #JOIN</br></summary>
 
 ID 10352  
 
@@ -1306,7 +1354,7 @@ GROUP BY user_id;
 |1|35|
 </details>
 <details>
-<summary>Упражнение "Ранг активности": CTE, ранжирование с сортировкой по двум разным условиям #WITH_AS #OVER #row_number() </summary>
+<summary>Упражнение "Ранг активности": CTE, ранжирование с сортировкой по двум разным условиям <br>#WITH_AS #OVER #row_number()</br></summary>
 
 ID 10351  
 
@@ -1355,7 +1403,7 @@ LIMIT 5;
 |91f59516cb9dee1e88|16|5|
 </details>
 <details>
-<summary>Упражнение "Weekly active users (WAU)": оконная функция, self join #log() #OVER #JOIN </summary>
+<summary>Упражнение "Количество повторных клиентов (Weekly active users - WAU)": оконная функция, self join <br>#lag() #OVER #JOIN</br></summary>
 
 ID 10322  
 
@@ -1419,7 +1467,7 @@ LIMIT 5;
 |110|
 </details>
 <details>
-<summary>Упражнение "Проекты с перерасходом по ФОТ": объединение таблиц многие-ко-многим с условием фильтрации по формуле #JOIN #date #ceil() #sum() </summary>
+<summary>Упражнение "Проекты с перерасходом по ФОТ": объединение таблиц многие-ко-многим с условием фильтрации по формуле <br>#JOIN #date #ceil() #sum()</br></summary>
 
 ID 10304  
 
@@ -1490,7 +1538,7 @@ LIMIT 5;
 |Project16|19922|21875|
 </details>
 <details>
-<summary>Упражнение "Friend Acceptance Rate": CTE, JOIN #WITH_AS #LEFTJOIN </summary>
+<summary>Упражнение "Доля принятых запросов в друзья": общее табличное выражение (CTE), JOIN <br>#WITH_AS #LEFTJOIN</br></summary>
 
 ID 10285  
 
@@ -1571,7 +1619,7 @@ GROUP BY date;
 |2020-01-06|0.667|
 </details>
 <details>
-<summary>Упражнение "Ранжирование наиболее активных гостей в аккаунтах": ранжирование оконной функцией плотного ранга #dense_rank() #OVER </summary>
+<summary>Упражнение "Ранжирование наиболее активных гостей в аккаунтах": ранжирование оконной функцией плотного ранга <br>#dense_rank() #OVER</br></summary>
 
 ID 10159  
 
@@ -1638,7 +1686,7 @@ LIMIT 5;
 |3|6133fb99-2391-4d4b-a077-bae40581f925|16|
 </details>
 <details>
-<summary>Упражнение "Число арендованных номеров по национальности": объединение таблиц с условием #JOIN #DISTINCT #count() </summary>
+<summary>Упражнение "Число арендованных номеров по национальности": объединение таблиц с условием <br>#JOIN #DISTINCT #count()</br></summary>
 
 ID 10156  
 
@@ -1688,7 +1736,7 @@ ORDER BY apartment_count DESC;
 
 </details>
 <details>
-<summary>Упражнение "Число пользователей продукции Apple": объединение таблиц, условное выражение, ругулярные выражения POSIX #JOIN #CASE #DISTINCT #count() #POSIX</summary>
+<summary>Упражнение "Число пользователей продукции Apple": объединение таблиц, условное выражение, ругулярные выражения POSIX <br>#JOIN #CASE #DISTINCT #count() #POSIX</br></summary>
 
 ID 10141  
 
@@ -1791,7 +1839,7 @@ ORDER BY n_total_users DESC;
 
 </details>
 <details>
-<summary>Упражнение "Спам-посты": подсчет процентов с объединение таблиц и условным выражением #CASE #JOIN #count() #sum() </summary>
+<summary>Упражнение "Спам-посты": подсчет процентов с объединение таблиц и условным выражением <br>#CASE #JOIN #count() #sum()</br> </summary>
 
 ID 10134  
 
@@ -1860,7 +1908,7 @@ LEFT JOIN
 |2019-01-01|100|
 </details>
 <details>
-<summary>Упражнение "Процент высланных по почте заказов": подсчет процентов с объединением таблиц и CTE c условным выражением для строковых данных #CTE #NULLIF #CASE #JOIN #count() #sum() </summary>
+<summary>Упражнение "Процент высланных по почте заказов": подсчет процентов с объединением таблиц и CTE c условным выражением для строковых данных <br>#CTE #NULLIF #CASE #JOIN #count() #sum()</br></summary>
 
 ID 10090  
 
@@ -1922,4 +1970,110 @@ FROM
 |percent_shipable|
 |:--|
 |28|
+</details>
+
+## SQL-задачи из других источников
+<details>
+<summary>Подбор туристических поездок по определенным параметрам  
+<br>#CREATE DATABASE #CREATE TABLE #INSERT INTO #JOIN #dense_rank() #OVER</br></summary>
+	
+Определите, для какой местности в БД есть наибольшее количество предложений туров,  не дороже 80000 за 7 дней и более и с водоемом.  
+В ответ запишите количество предложений для этой местности, отвечающее заданным условиям. 
+
+ **Solution**
+ Сщздаем базу данных со связанными по ключам таблицами и заполняем их данными.  
+ 
+```sql
+CREATE DATABASE tourism;
+
+CREATE TABLE locations -- Расположение курорта
+(id integer PRIMARY KEY, -- Ключ расположения курорта
+location varchar(9)	); -- Месторасположение курорта
+
+INSERT INTO locations (id, location) VALUES
+(1, 'Sakhalin'),
+(2, 'Altai'),
+(3, 'Baikal'),
+(4, 'Siberia'),
+(5, 'Karelia');
+
+CREATE TABLE recriations -- Курорт
+(id integer PRIMARY KEY, -- Ключ курорта
+recriation_name varchar(10), -- Наименование курорта
+location_id integer REFERENCES locations, -- Ключ расположения курорта
+reservoir integer); -- Наличие водоема (1 - да, 0 - нет)
+
+INSERT INTO recriations (id, recriation_name, location_id, reservoir) VALUES 
+(1, 'Cuffs', 2, 1),
+(2, 'Mill', 3, 1),
+(3, 'Chermal', 4, 0),
+(4, 'Albatros', 1, 1),
+(5, 'Hamar', 3, 1),
+(6, 'Sheregesh', 4, 1),
+(7, 'Viking', 2, 1),
+(8, 'Santa', 5, 1),
+(9, 'Bear Creek', 1, 0),
+(10, 'Barrel', 4, 1),
+(11, 'Kaya', 2, 1),
+(12, 'Alatan', 2, 1);
+
+CREATE TABLE travel_offers -- Туры
+(id integer PRIMARY KEY, -- Ключ тура
+recriation_id integer REFERENCES recriations, -- Ключ курорта
+price numeric(6), -- Цена
+duration integer, -- Продолжительность
+travel_month varchar(9)); -- Месяц
+
+INSERT INTO travel_offers (id, recriation_id, price, duration, travel_month) VALUES 
+(1, 5, 70000, 7, 'August'),
+(2, 2, 49000, 6, 'July'),
+(3, 12, 140000, 14, 'August'),
+(4, 10, 70500, 7, 'August'),
+(5, 1, 50000, 7, 'August'),
+(6, 3, 100000, 12, 'September'),
+(7, 4, 60000, 6, 'August'),
+(8, 4, 99000, 10, 'August'),
+(9, 6, 71000, 7, 'May'),
+(10, 9, 68000, 7, 'August'),
+(11, 5, 168000, 12, 'June'),
+(12, 7, 79000, 8, 'August'),
+(13, 11, 142000, 14, 'August'),
+(14, 9, 72000, 12, 'August'),
+(15, 11, 50000, 6, 'August');
+
+```
+На первом этапе джойним таблицы сразу отфильтровывая нужные нам туры по параметрам цены, продолжительности и наличию водоема.  
+Затем строим функцию плотного ранга для ранжирования туров и подсчитываем количество предложений по этим турам.  
+Оборачивам все это в подзапрос, чтобы отобрать туры с рангом = 1.  
+
+```sql
+SELECT location, proposals_num
+FROM 
+	(SELECT 
+		location,
+		count(location) AS proposals_num,
+		dense_rank() OVER (ORDER BY count(location) DESC) AS proposal_rank
+	FROM travel_offers AS tro 
+	JOIN recriations AS r ON tro.recriation_id = r.id
+		AND tro.price <= 80000 
+		AND tro.duration >= 7
+		AND r.reservoir = 1
+	JOIN locations AS l ON r.location_id = l.id
+	GROUP BY location) AS t -- Проранжированная таблица
+WHERE proposal_rank = 1; -- Отбираем строки с рангом = 1
+
+```
+Удаляем базу данных.
+
+```sql
+DROP DATABASE tourism;
+
+```
+
+ **Output**
+ 
+|location|proposals_num|
+|---|--:
+|Altai|2|
+|Siberia|2|
 </details>
