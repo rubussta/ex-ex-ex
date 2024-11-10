@@ -2079,7 +2079,7 @@ DROP DATABASE tourism;
 </details>
 <details>
 <summary>В каждой категории материала найти id материала с минимальным приоритетом использования.  
-<br>#CREATE DATABASE #CREATE TABLE #INSERT INTO #JOIN #dense_rank() #OVER</br></summary>
+<br>#CREATE TEMP TABLE #INSERT INTO #JOIN #dense_rank() #OVER</br></summary>
 	
 По таблице (Код_материала, ИД, Приоритет) написать запрос, который для каждого кода материала возвращает ИД, у которого минимальный приоритет.
 
