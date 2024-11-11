@@ -1971,6 +1971,57 @@ FROM
 |:--|
 |28|
 </details>
+<details>
+<summary>Упражнение "Поиск совпадающих пар host - guest по соцдему пользователей ": объединение таблиц и фильтрация уникальных пар значений <br>#JOIN #DISTINCT</br></summary>
+
+ID 10078 
+
+Find matching hosts and guests pairs in a way that they are both of the same gender and nationality.  
+Output the host id and the guest id of matched pair.
+
+Table:  airbnb_hosts  
+
+host_id: int  
+nationality: varchar  
+gender: varchar  
+age: int   
+
+Table: airbnb_guests 
+
+guest_id: int  
+nationality: varchar  
+gender: varchar  
+age: int      
+
+**Solution**
+
+Объединяем две таблицы по совпадающим парам соцдема национальность - пол. Возвращаем уникальные строки по колонкам  host - guest.
+
+```sql
+SELECT DISTINCT host_id, guest_id
+FROM airbnb_hosts AS ah
+JOIN airbnb_guests AS ag ON 
+    ah.nationality = ag.nationality AND ah.gender = ag.gender;
+
+```
+
+ **Output**
+
+|host_id|guest_id|
+|---|---|
+|0|9|
+|1|5|
+|2|1|
+|3|7|
+|4|0|
+|5|2|
+|6|4|
+|7|10|
+|8|3|
+|9|8|
+|10|6|
+|11|11|
+</details>
 
 ## SQL-задачи из других источников
 <details>
