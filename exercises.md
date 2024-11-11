@@ -2022,6 +2022,64 @@ JOIN airbnb_guests AS ag ON
 |10|6|
 |11|11|
 </details>
+<details>
+<summary>Упражнение "Итоговый доход работников по должностям и полу": Общее табличное выражение с бонусами объединяется с таблицей работников с группировкой по должностям и полу<br>#CTE #WITH AS #JOIN #GROUP BY #avg()</br></summary>
+
+ID 10077
+
+Income By Title and Gender.  
+Find the average total compensation based on employee titles and gender. Total compensation is calculated by adding both the salary and bonus of each employee. However, not every employee receives a bonus so disregard employees without bonuses in your calculation. Employee can receive more than one bonus. Output the employee title, gender (i.e., sex), along with the average total compensation.
+
+Table:  sf_employee 
+
+id: int  
+first_name: varchar  
+last_name: varchar  
+age: int  
+sex: varchar  
+employee_title: varchar  
+department: varchar  
+salary: int  
+target: int  
+email: varchar  
+city: varchar  
+address: varchar  
+manager_id: int    
+
+Table: sf_bonus 
+
+worker_ref_id: int  
+bonus: int      
+
+**Solution**
+
+По условию задачи одни работник может получать несколько бонусов. Чтобы правильно посчитать среднюю итоговую зарплату по должностям и полу, сгенерируем в CTE таблицу работниок с суммарным количеством бонусов и уже ее будем объединять с основной таблицей чере INNER JOIN, чтобы отсечь работников без бонусов. Полученную таблицу группируем по должности и полу и расчитываем агрегатную функцию среднего по сумме зарплат и бонусо внутри сформированных групп. Вместо CTЕ можно было бы использовать подзапрос.
+
+```sql
+WITH total_sf_bonus AS ( -- Суммарные бонусы работника
+    SELECT worker_ref_id, sum(bonus) AS bonus 
+    FROM sf_bonus GROUP BY worker_ref_id
+    )
+SELECT 
+    employee_title, 
+    sex, 
+    avg(salary + bonus) AS avg_compensation
+FROM sf_employee AS se
+JOIN total_sf_bonus AS tsb 
+    ON se.id = tsb.worker_ref_id
+GROUP BY employee_title, sex;
+
+```
+
+ **Output**
+
+employee_title|sex|avg_compensation|
+|:--|:--|---|
+|Senior Sales|M|5350|
+|Auditor|M|2200|
+|Manager|F|209500|
+|Sales|M|4600|
+</details>
 
 ## SQL-задачи из других источников
 <details>
