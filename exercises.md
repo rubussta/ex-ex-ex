@@ -2157,6 +2157,72 @@ JOIN max_energy me ON ebd.total_energy = me.max_energy;
 |2020-01-06|1250|
 |2020-01-07|1250|
 </details>
+<details>
+<summary>Упражнение "Лучшие отзывы": три разных способа вывести одинаковые максимумы<br>#dense_rank() #OVER #CTE #WITH #max() #JOIN</br></summary>
+
+ID 10060 
+
+Top Cool Votes 
+Find the review_text that received the highest number of  'cool' votes.  
+Output the business name along with the review text with the highest numbef of 'cool' votes.  
+
+Table: yelp_reviews   
+
+business_name: varchar  
+review_id: varchar  
+user_id: varchar  
+stars: varchar  
+review_date: datetime  
+review_text: varchar  
+funny: int  
+useful: int  
+cool: int  
+
+**Solution**
+
+1 способ вывести строки с одинаковыми максимумами - оконная функция плотного ранга dense_rank(), обернутая в подзапрос с фильтрацией через WHERE. 
+
+```sql
+SELECT business_name,review_text
+FROM
+    (SELECT business_name, 
+        review_text,
+        dense_rank() OVER (ORDER BY cool DESC) AS cool_rank
+    FROM yelp_reviews) AS t
+WHERE cool_rank = 1;
+
+```
+2 способ - self join основной таблицы с производной от нее таблицей с агрегатной функцией max().
+
+```sql
+WITH max_cool_rank AS (
+SELECT business_name, review_text, cool
+FROM yelp_reviews
+ORDER BY cool DESC
+LIMIT 1
+)
+SELECT yr.business_name, yr.review_text
+FROM yelp_reviews AS yr
+JOIN max_cool_rank AS mcr ON
+    yr.cool = mcr.cool;
+
+```
+3 способ - подзапрос с агрегатом max() в WHERE.
+
+```sql
+SELECT business_name, review_text
+FROM yelp_reviews
+WHERE cool = (SELECT max(cool) FROM yelp_reviews);
+
+```
+
+ **Output**
+
+|business_name|review_text|
+|:--|:--|
+|Roka Akor|I hate to admit it, but it had been a long while since my last visit to Roka Akor. I deserve a hand slap. But last week, I had the perfect excuse to p|
+|Lunardis|This is the nicest grocery store in the city. I actually met my wife at this grocery store while shopping for avocados.|
+</details>
 
 ## SQL-задачи из других источников
 <details>
