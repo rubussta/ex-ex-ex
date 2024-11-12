@@ -2080,6 +2080,83 @@ employee_title|sex|avg_compensation|
 |Manager|F|209500|
 |Sales|M|4600|
 </details>
+<details>
+<summary>Упражнение "Самое высокое потребление энергии": объединение множеств, подзапросы + нетипичное применение джойна<br>#UNION #sum() #dense_rank() #OVER #CTE #WITH #max() #JOIN</br></summary>
+
+ID 10064 
+
+Highest Energy Consumption  
+Find the date with the highest total energy consumption from the Meta/Facebook data centers. Output the date along with the total energy consumption across all data centers.  
+
+Table: fb_eu_energy   
+
+date: datetime  
+consumption: int   
+
+Table: fb_asia_energy   
+
+date: datetime  
+consumption: int   
+
+Table: fb_na_energy  
+
+date: datetime  
+consumption: int   
+
+**Solution**
+
+Используем вложенные подзапросы. Сначала объединяем три множества (три таблицы) чере UNION. Затем группируем общее множество по дате и агрегатной функцией расчитываем потребление энергии внутри дат. Наконец ранжируем потребление оконной функцией плотного ранга dense_rank() по потреблению энергии и оборачиваем все в следующий подзапрос, чтобы не потерять даты с одинаковым максимальным потреблением. Отфильтровываем ранг = 1 и получаем решение задачи и как и предполагалось, есть две разные даты с одинаковым максимальным потреблением энергии. 
+
+```sql
+SELECT date, total_energy
+FROM
+    (SELECT date, 
+        total_energy,
+        dense_rank() OVER (ORDER BY total_energy DESC) AS total_energy_rank
+    FROM
+        (SELECT date, sum(consumption) AS total_energy
+            FROM
+                (SELECT date, consumption FROM fb_eu_energy
+                UNION ALL
+                SELECT date, consumption FROM fb_asia_energy
+                UNION ALL
+                SELECT date, consumption FROM fb_na_energy) AS energy_consumption
+        GROUP BY date) AS energy_cons_by_date) AS ranked_consumption
+WHERE total_energy_rank = 1;
+
+```
+StrataScrath предлагает несколько иное и довольно неожиданное решение. Вместо подзапросов используются три CTE, где одно ображается к другому. Но как возвратить максимум потребления, если их несколько одинаковых, а агрегатная функция max() возвращает только одно число и оно будет выбрано случайным образом при наличии одинаковых? Мы использовали оконную функцию плотного ранга dense_rank(), но для данной задачи есть и другое решение с помощью INNER JOIN. Для этого и нужны CTE. Таблицу со сгруппированными по датам данными потребления джойним с производной CTE-таблицей с единственной строкой максимального потребления. Если в основной таблице только один максимум по потреблению, то он и возвращается внутренним джойном, а если их несколько, то они оказываются в разных строчках финальной объединенной таблицы.
+
+```sql
+WITH total_energy AS
+  (SELECT * FROM fb_eu_energy eu
+   UNION ALL 
+   SELECT * FROM fb_asia_energy asia
+   UNION ALL 
+   SELECT * FROM fb_na_energy na),
+--
+energy_by_date AS
+  (SELECT date, sum(consumption) AS total_energy
+   FROM total_energy
+   GROUP BY date
+   ORDER BY date ASC),
+--
+max_energy AS
+  (SELECT max(total_energy) AS max_energy
+   FROM energy_by_date)
+--
+SELECT ebd.date, ebd.total_energy
+FROM energy_by_date ebd
+JOIN max_energy me ON ebd.total_energy = me.max_energy;
+
+```
+ **Output**
+
+|date|total_energy|
+|---|---|
+|2020-01-06|1250|
+|2020-01-07|1250|
+</details>
 
 ## SQL-задачи из других источников
 <details>
