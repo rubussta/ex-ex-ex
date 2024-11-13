@@ -2276,6 +2276,56 @@ LIMIT 10;
 |Italian|222|
 |Bars|212|
 </details>
+<details>
+<summary>Упражнение "ТОП-5 бизнесов с наибольшим кол-ом отзывов": ранжирование функцией плотного ранга в оконной функции<br>#dense_rank() #OVER</br></summary>
+
+ID 10048
+
+Top Businesses With Most Reviews.     
+Find the top 5 businesses with most reviews. Assume that each row has a unique business_id such that the total reviews for each business is listed on each row. Output the business name along with the total number of reviews and order your results by the total reviews in descending order.  
+
+Table:  yelp_business 
+
+business_id: varchar  
+name: varchar  
+neighborhood: varchar  
+address: varchar  
+city: varchar  
+state: varchar  
+postal_code: varchar
+latitude: float  
+longitude: float  
+stars: float  
+review_count: int  
+is_open: int  
+categories: varchar 
+   
+**Solution**
+
+Ранжирование по количеству отзывов осуществляем функцией плотного ранга dense_rank() в окне, равном всему датасету. Это позволяет не потерять строки с одинаковым кол-вом отзывов. Для поиска ТОП-5 оборачиваем оконную функцию в подзапрос. Ранжирование внутри оконной функции сохраняется при выводе и нет необходимости делать его повторно для соблюдения условия задачи.
+
+```sql
+SELECT name,
+    review_count
+FROM
+    (SELECT name,
+        review_count,
+        dense_rank() OVER (ORDER BY review_count DESC) AS r
+    FROM yelp_business) AS t
+WHERE r <= 5;
+
+```
+
+ **Output**
+
+|name|review_count|
+|:--|--|
+|Iron Chef|331|
+|Jacs Dining and Tap House|197|
+|Grimaldi's Pizzeria|187|
+|Signs Restaurant|120|
+|Kassab's|101|
+</details>
 
 ## SQL-задачи из других источников
 <details>
