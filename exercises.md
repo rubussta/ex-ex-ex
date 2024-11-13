@@ -2223,6 +2223,59 @@ WHERE cool = (SELECT max(cool) FROM yelp_reviews);
 |Roka Akor|I hate to admit it, but it had been a long while since my last visit to Roka Akor. I deserve a hand slap. But last week, I had the perfect excuse to p|
 |Lunardis|This is the nicest grocery store in the city. I actually met my wife at this grocery store while shopping for avocados.|
 </details>
+<details>
+<summary>Упражнение "Отзывы по категориям бизнеса": парсинг текстовой строки в массив с разворачиванием его в набор строк таблицы<br>#string_to_array() #unnest() #GROUP BY #sum()</br></summary>
+
+ID 10049
+
+Reviews of Categories.    
+Find the top business categories based on the total number of reviews. Output the category along with the total number of reviews. Order by total reviews in descending order.  
+
+Table:  yelp_business 
+
+business_id: varchar  
+name: varchar  
+neighborhood: varchar  
+address: varchar  
+city: varchar  
+state: varchar  
+postal_code: varchar  
+latitude: float  
+longitude: float  
+stars: float  
+review_count: int  
+is_open: int  
+categories: varchar  
+   
+**Solution**
+
+У каждого предприятия несколшько сфер деятельности (категорий бизнеса), которые представлены одной текстовой строкой. Функция string_to_array() разделяет строку на поля и формирует из них массив значений, функция unnest() разворачивает массив в набор строк. Остается сгруппировать строки, расчитать агрегат суммы отзывов и вывести все с нужной сортировкой.
+
+```sql
+SELECT unnest(string_to_array(categories, ';')) AS category,
+    sum(review_count) AS review_cnt
+FROM yelp_business
+GROUP BY category
+ORDER BY review_cnt DESC
+LIMIT 10;  
+
+```
+
+ **Output**
+
+|category|review_cnt|
+|:--|--|
+|Restaurants|1703|
+|Food|508|
+|Pizza|456|
+|Chinese|417|
+|Japanese|350|
+|Gluten-Free|344|
+|Sushi Bars|331|
+|American (New)|242|
+|Italian|222|
+|Bars|212|
+</details>
 
 ## SQL-задачи из других источников
 <details>
