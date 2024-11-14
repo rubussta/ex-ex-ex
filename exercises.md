@@ -2326,6 +2326,64 @@ WHERE r <= 5;
 |Signs Restaurant|120|
 |Kassab's|101|
 </details>
+<details>
+<summary>Упражнение "Найдите все винодельни, которые производят вина с ароматом сливы, вишни, розы или лесного ореха": поиск по шаблонам с использованием регулярных выражений POSIX</br>#POSIX #~*</summary>
+
+ID 10026
+
+Find all wineries which produce wines by possessing aromas of plum, cherry, rose, or hazelnut.  
+To make it more simple, look only for singular form of the mentioned aromas. HINT: if one of the specified words is just a substring of another word, this should not be a hit, but a miss.
+
+Example Description: Hot, tannic and simple, with cherry jam and currant flavors accompanied by high, tart acidity and chile-pepper alcohol heat.
+Therefore the winery Bella Piazza is expected in the results. 
+
+Table:  winemag_p1 
+
+id: int  
+country: varchar  
+description: varchar  
+designation: varchar  
+points: int  
+price: float  
+province: varchar  
+region_1: varchar  
+region_2: varchar  
+variety: varchar  
+winery: varchar 
+   
+**Solution**
+
+Поиск по шаблонам с использованием регулярных выражений POSIX. Для проверка соответствия строки регулярному выражению без учёта регистра используется оператор регулярных выражений ~*, что равнозначно lower()
+
+```sql
+SELECT DISTINCT winery
+FROM winemag_p1
+WHERE description ~* '(\yplum\y|\ycherry\y|\yrose\y|\yhazelnut\y)'
+ORDER BY winery;
+
+```
+
+ **Output**
+
+|winery|
+|:--|
+|Bella Piazza|
+|Bodega Noemaa de Patagonia|
+|Bodega Norton|
+|Bodegas La Guarda|
+|Boudreaux Cellars|
+
+Полнотекстовой поиск даст немного другой резульотат, поскольку в поиск войдут множественные формы слов и составные слова без пробелов.
+
+```sql
+SELECT winery
+FROM winemag_p1
+WHERE to_tsvector('english', description) @@ to_tsquery('english', 'plum|cherry|rose|hazelnut') IS true
+ORDER BY winery;
+
+```
+
+</details>
 
 ## SQL-задачи из других источников
 <details>
