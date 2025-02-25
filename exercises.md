@@ -1189,7 +1189,7 @@ WHERE place < 4; -- тройка победителей голосования
 |Nicole|2.7|3|
 </details>
 <details>
-<summary>Упражнение "Самые высокодоходные компании": вложкнные подзапросы с оконной функцией ранжирования #OVER #dense_rank() #GROUP_BY #ORDER_BY </summary>
+<summary>Упражнение "Самые высокодоходные компании": вложенные подзапросы с оконной функцией ранжирования #OVER #dense_rank() #GROUP_BY #ORDER_BY </summary>
 
 ID 10354   
 	
@@ -1237,6 +1237,54 @@ ORDER BY profit DESC;
 |ICBC|42.7|
 |Gazprom|39|
 |Apple|37|
+</details>
+<details>
+<summary>Упражнение "Самое большое кол-во заказов": вложенные подзапросы с оконной функцией ранжирования #OVER #dense_rank() #GROUP_BY #ORDER_BY </summary>
+
+ID 9909   
+	
+"Highest Number Of Orders"  
+Find the customer who has placed the highest number of orders. Output the id of the customer along with the corresponding number of orders.  
+
+Table: customers  
+
+address: text  
+city: text  
+first_name: text  
+id: bigint  
+last_name: text  
+phone_number: text  
+
+Table: orders 
+
+cust_id: bigint  
+id: bigint  
+order_date: date  
+order_details: text  
+total_order_cost: bigint  
+
+**Solution**
+
+```sql
+SSELECT t.id, t.total_orders
+FROM
+    (SELECT 
+        c.id, -- ID клиента
+        dense_rank () OVER (ORDER BY count(o.cust_id) DESC) AS dr, -- Ранг клиента по кол-ву заказов
+        count(o.cust_id) AS total_orders -- Кол-во заказов
+    FROM customers AS c
+    JOIN orders AS o ON c.id = o.cust_id
+    GROUP BY c.id) AS t
+WHERE dr = 1;
+
+```
+
+ **Output**
+
+|id|total_order|
+|---|--:|
+|7|8|
+
 </details>
 <details>
 <summary>Упражнение "Работники с самыми высокими зарплатами": оконная функция ранжирования либо условное выражение <br>#OVER #dense_rank() #CASE</br></summary>
