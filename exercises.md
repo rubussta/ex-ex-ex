@@ -1887,6 +1887,66 @@ ORDER BY n_total_users DESC;
 
 </details>
 <details>
+<summary>Упражнение "Число заказов клиентов": объединение таблиц, условное выражение<br>#CTE #WITH #LEFT JOIN</br></summary>
+
+ID 10142  
+
+"No Order Customers"  
+Identify customers who did not place an order between 2019-02-01 and 2019-03-01.   
+
+Table: customers  
+
+address: text  
+city: text  
+first_name: text  
+id: bigint  
+last_name: text  
+phone_number: text    
+
+Table: orders  
+
+cust_id: bigint  
+id: bigint  
+order_date: date  
+order_details: text  
+total_order_cost: bigint  
+
+**Solution**
+
+В общем табличнов выражении (CTE) сгенерируем таблицу клиентов, которые сделали заказ в указанные даты и вычтем ее из общего списка клиентов через LEFT JOIN.  
+
+```sql
+WITH orders_in_range AS (
+    SELECT cust_id
+    FROM orders
+    WHERE DATE(order_date) >= '2019-02-01' AND DATE(order_date) <= '2019-03-01'
+)
+SELECT c.id, c.first_name
+FROM customers AS c
+LEFT JOIN orders_in_range AS oir
+    ON c.id = oir.cust_id
+WHERE oir.cust_id IS NULL
+ORDER BY c.id;
+
+```
+
+ **Output**
+
+|id|first_name|
+|:--|---|
+|1Mark|
+|2Mona|
+|6|Jack|
+|8|John|
+|9|Justin|
+|10|Lili|
+|11|Frank|
+|12|Eva|
+|13|Emma|
+|14|Liam|  
+
+</details>
+<details>
 <summary>Упражнение "Спам-посты": подсчет процентов с объединение таблиц и условным выражением <br>#CASE #JOIN #count() #sum()</br> </summary>
 
 ID 10134  
