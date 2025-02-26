@@ -1934,8 +1934,8 @@ ORDER BY c.id;
 
 |id|first_name|
 |:--|---|
-|1Mark|
-|2Mona|
+|1|Mark|
+|2|Mona|
 |6|Jack|
 |8|John|
 |9|Justin|
