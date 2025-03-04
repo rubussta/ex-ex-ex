@@ -2016,7 +2016,6 @@ LEFT JOIN
 |2019-01-01|100|
 </details>
 <details>
-<details>
 <summary>ID 10182 "Number of Streets Per Zip Code" - условное выражение со строковыми функциями и POSIX <br>#CASE #POSIX #split_part() #left() #lower()</br> </summary>
 
 "Number of Streets Per Zip Code"  
@@ -2089,6 +2088,7 @@ ORDER BY n_streets DESC, business_postal_code ASC;
 |94127|2|
 |94131|1|
 </details>
+<details>
 <summary>Упражнение "Процент высланных по почте заказов": подсчет процентов с объединением таблиц и CTE c условным выражением для строковых данных <br>#CTE #NULLIF #CASE #JOIN #count() #sum()</br></summary>
 
 ID 10090  
