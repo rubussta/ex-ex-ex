@@ -2016,6 +2016,79 @@ LEFT JOIN
 |2019-01-01|100|
 </details>
 <details>
+<details>
+<summary>ID 10182 "Number of Streets Per Zip Code" - условное выражение со строковыми функциями и POSIX <br>#CASE #POSIX #split_part() #left() #lower()</br> </summary>
+
+"Number of Streets Per Zip Code"  
+Count the number of unique street names for each postal code in the business dataset. Use only the first word of the street name, case insensitive (e.g., "FOLSOM" and "Folsom" are the same). If the structure is reversed (e.g., "Pier 39" and "39 Pier"), count them as the same street. Output the results with postal codes, ordered by the number of streets (descending) and postal code (ascending). 
+
+Table:  sf_restaurant_health_violationssts  
+
+business_address: text  
+business_city: text  
+business_id: bigint  
+business_latitude: double precision  
+business_location: text  
+business_longitude: double precision  
+business_name: text  
+business_phone_number: double precision  
+business_postal_code: double precision  
+business_state: text  
+inspection_date: date  
+inspection_id: text  
+inspection_score: double precision  
+inspection_type: text  
+risk_category: text  
+violation_description: text  
+violation_id: text     
+
+**Solution**
+
+Решение по парсингу строк основано на использовании строковых функций разделяющих строки на подстроки с их дальнейшим использованием в условном выражении для разделения адресов, начинающихся с номера дома, от адресов, начинающихся с названия улицы.
+
+```sql
+SELECT 
+    business_postal_code,
+    count(DISTINCT CASE
+            WHEN left(business_address, 1) ~ '^[0-9]' -- Если первый символ в строке не цифра,
+            THEN lower(split_part(business_address, ' ', 2)) -- то делим строку по пробелам и берем 2-ю подстроку (улицу) 
+            ELSE lower(split_part(business_address, ' ', 1)) -- иначе возвращаем первую подстроку с цифрами (номер дома)
+        END) AS n_streets
+FROM sf_restaurant_health_violations
+WHERE business_postal_code IS NOT NULL -- Отфильтровываем строки без индекса
+GROUP BY business_postal_code
+ORDER BY n_streets DESC, business_postal_code ASC;
+
+```
+ **Output**
+
+|business_postal_code|n_streets|
+|:--|:--|
+|94103|16|
+|94133|11|
+|94102|10|
+|94109|9|
+|94107|8|
+|94108|8|
+|94110|8|
+|94112|8|
+|94104|7|
+|94105|7|
+|94114|6|
+|94111|5|
+|94115|5|
+|94122|5|
+|94118|4|
+|94121|4|
+|94132|4|
+|94134|4|
+|94117|3|
+|94123|3|
+|94124|3|
+|94116|2|
+|94127|2|
+|94131|1|
+</details>
 <summary>Упражнение "Процент высланных по почте заказов": подсчет процентов с объединением таблиц и CTE c условным выражением для строковых данных <br>#CTE #NULLIF #CASE #JOIN #count() #sum()</br></summary>
 
 ID 10090  
