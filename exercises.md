@@ -1667,6 +1667,49 @@ GROUP BY date;
 |2020-01-06|0.667|
 </details>
 <details>
+<summary>ID 10288 "Clicked Vs Non-Clicked Search Results"<br>Общее табличное выражение (CTE)</br><br>#WITH_AS #CTE</br></summary>
+
+The question asks you to calculate two percentages based on search results. First, find the percentage of all search records clicked (clicked = 1) and in the top 3 positions. Second, find the percentage of all search records that were not clicked (clicked = 0) but in the top 3 positions. Both percentages are calculated with respect to the total number of search records and should be output in the same row as two columns.  
+
+Table: fb_search_events 
+
+clicked: bigint  
+search_id: bigint  
+search_results_position: bigint  
+search_term: text    
+
+**Solution**
+
+Реншение основано на генерации трех общих табличных выражений (CTE), в которых расчитываются агрегаты, используемые затем как составные части формул общего финального решения задачи.
+
+```sql
+WITH top_3_clicked_rec AS (
+    SELECT COUNT(*) AS top_3_clicked_records -- Кол-во записей с кликами
+    FROM fb_search_events
+    WHERE clicked = 1 AND search_results_position <= 3
+),
+top_3_nonclicked_rec AS (
+    SELECT COUNT(*) AS top_3_nonclicked_records -- Кол-во записей без кликов
+    FROM fb_search_events
+    WHERE clicked = 0 AND search_results_position <= 3
+),
+total_rec AS (
+    SELECT COUNT(*) AS total_records FROM fb_search_events -- Общее кол-во записей
+)
+SELECT 
+    top_3_clicked_records * 100.0 / total_records AS top_3_clicked,
+    top_3_nonclicked_records * 100.0 / total_records AS top_3_notclicked
+FROM 
+    top_3_clicked_rec, top_3_nonclicked_rec, total_rec;
+```  
+
+ **Output**
+
+|top_3_clicked|top_3_notclicked|
+|---:|--:|
+|38.33|25.33|
+</details>
+<details>
 <summary>Упражнение "Ранжирование наиболее активных гостей в аккаунтах": ранжирование оконной функцией плотного ранга <br>#dense_rank() #OVER</br></summary>
 
 ID 10159  
