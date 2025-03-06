@@ -1667,7 +1667,7 @@ GROUP BY date;
 |2020-01-06|0.667|
 </details>
 <details>
-<summary>ID 10288 "Clicked Vs Non-Clicked Search Results"<br>Общее табличное выражение (CTE)</br><br>#WITH_AS #CTE</br></summary>
+<summary>ID 10288 "Clicked Vs Non-Clicked Search Results"<br>Общее табличное выражение (CTE)</br>#WITH_AS #CTE</summary>
 
 The question asks you to calculate two percentages based on search results. First, find the percentage of all search records clicked (clicked = 1) and in the top 3 positions. Second, find the percentage of all search records that were not clicked (clicked = 0) but in the top 3 positions. Both percentages are calculated with respect to the total number of search records and should be output in the same row as two columns.  
 
