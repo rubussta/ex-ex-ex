@@ -1710,6 +1710,42 @@ FROM
 |38.33|25.33|
 </details>
 <details>
+<summary>ID 10296 "Meta/Facebook Accounts"<br>Общее табличное выражение (CTE), условное выражение (CASE)</br>#WITH_AS #CTE #CASE</summary>
+
+Calculate the ratio of accounts closed on January 10th, 2020 using the fb_account_status table.  
+
+Table: fb_account_status 
+
+acc_id: bigint  
+date: date  
+status: text   
+
+**Solution**
+
+Числитель и знаменеаль формулы для расчета доли аккаунтов генерируем в виде столбцов с помощью общего табличного выражения и условного выражения, что позволяет в дальннйшем манипулировать этими цифрами. 
+
+```sql
+WITH t AS (
+    SELECT
+    date,
+    count(CASE WHEN status LIKE'closed' THEN 1 END) AS closed_accounts,
+    count(*) AS total_accounts
+    FROM fb_account_status
+    GROUP BY date
+)
+SELECT
+   closed_accounts::numeric /  total_accounts::numeric AS closed_ration
+FROM t
+WHERE date = '2020-01-10';
+```  
+
+ **Output**
+
+|closed_ration|
+|---:|
+|0.45|
+</details>
+<details>
 <summary>Упражнение "Ранжирование наиболее активных гостей в аккаунтах": ранжирование оконной функцией плотного ранга <br>#dense_rank() #OVER</br></summary>
 
 ID 10159  
